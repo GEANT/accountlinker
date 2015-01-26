@@ -78,6 +78,7 @@ class sspmod_accountLinker_Auth_Process_AccountLinker extends SimpleSAML_Auth_Pr
 				
 		if ($this->_store->hasEntityId()) {
 			SimpleSAML_Logger::debug('AccountLinker: entityid '.$this->_store->getEntityId().' is already known here');
+			SimpleSAML_Logger::debug('AccountLinker: SP entityid '.$this->_store->getSpEntityId() );
 			if (!$this->_store->matchIdentifiableAttributes()) {
 				SimpleSAML_Logger::debug('AccountLinker: no account match found, adding account');
 				$this->_store->addAccount();

@@ -140,6 +140,11 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
 		return $this->_entityId;
 	}
 
+	public function getSpEntityId()
+	{
+		return $this->_spEntityId;
+	}
+
 	/**
 	 * Insert entity_id
 	 *
