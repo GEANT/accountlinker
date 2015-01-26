@@ -5,7 +5,6 @@
  */
 
 $config = array (
-	'class' => 'Admin:SQLStore',
 	'dsn' => 'pgsql:dbname=yourdbnamehere',
 	'username' => 'user',
 	'password' => '1234'
