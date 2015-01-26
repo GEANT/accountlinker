@@ -6,6 +6,11 @@
  */
 class sspmod_accountLinker_AccountLinker_Store_SQLStore {
 
+	/**
+	 * DSN config.
+	 */
+	private $_accountLinkerConfig;
+
 
 	/**
 	 * DSN for the database.
@@ -72,15 +77,14 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
 	 */
 	public function __construct($config)
 	{
-		foreach (array('dsn', 'username', 'password') as $id) {
-			if (!array_key_exists($id, $config)) {
-				throw new Exception('AccountLinking - Missing required option \'' . $id . '\'.');
-			}
-			if (!is_string($config[$id])) {
-				throw new Exception('AccountLinking - \'' . $id . '\' is supposed to be a string.');
+		$this->_accountLinkerConfig = SimpleSAML_Configuration::getConfig('module_accountlinker.php');
+		foreach (array('dsn', 'username', 'password') as $param) {
+			$config[$param] = $this->_accountLinkerConfig->getString($param, NULL);
+			if ($config[$param] === NULL) {
+				throw new Exception('AccountLinking - Missing required option \'' . $param . '\'.');
 			}
 		}
-
+				
 		$this->_dsn = $config['dsn'];
 		$this->_ehsURL = "https://ds.incommon.org/FEH/sp-error.html";
 		$this->_username = $config['username'];
