@@ -126,21 +126,23 @@ span.metanav {
 		
 	<hr />
 	
-	<?php if (!empty($this->accounts)): ?>
-	<?php foreach ($this->accounts as $key => $account): ?>	
-	<div class="panel panel-primary">
-	  <div class="panel-heading"><strong>Account ID <?php echo $key . ' (' . $account[0]['entity_name'] . ')' ?></strong></div>
-	  		<table class="table table-hover">
-	  			<tbody>
-	  			<?php foreach ($account as $attr): ?>
-	  			<tr>
-	    			<th scope="row" class="col-md-3"><?php echo $attr['attribute_name'] ?></th><td><?php echo $attr['attribute_value'] ?></td>
-	    		</tr>
-				<?php endforeach; ?>
-			</tbody>
-	 		</table>
-	</div>
-	<?php endforeach; ?>	
+	<?php if (!empty($this->accounts)): ?>	
+	<div class="panel panel-primary"><div class="panel-heading">TAL_ID <?php echo $this->tal_id; ?></div><div class="panel-body">
+		<?php foreach ($this->accounts as $key => $account): ?>	
+		<div class="panel panel-info">
+		  <div class="panel-heading"><strong>Account <?php echo $key . ' (' . $account[0]['entity_name'] . ')' ?></strong></div>
+		  		<table class="table table-hover">
+		  			<tbody>
+		  			<?php foreach ($account as $attr): ?>
+		  			<tr>
+		    			<th scope="row" class="col-md-3"><?php echo $attr['attribute_name'] ?></th><td><?php echo $attr['attribute_value'] ?></td>
+		    		</tr>
+					<?php endforeach; ?>
+				</tbody>
+		 		</table>
+		</div>
+		<?php endforeach; ?>	
+	</div></div>
 	<?php endif; ?>
 	
 	
