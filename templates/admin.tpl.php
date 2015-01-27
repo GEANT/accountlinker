@@ -128,9 +128,9 @@ span.metanav {
 	
 	<?php if (!empty($this->accounts)): ?>
 	<?php foreach ($this->accounts as $key => $account): ?>	
-	<div class="panel panel-default">
-	  <div class="panel-heading">Account ID <?php echo $key; ?></div>
-	  		<table class="table table-hover table-striped">
+	<div class="panel panel-primary">
+	  <div class="panel-heading"><strong>Account ID <?php echo $key . ' (' . $account[0]['entity_name'] . ')' ?></strong></div>
+	  		<table class="table table-hover">
 	  			<tbody>
 	  			<?php foreach ($account as $attr): ?>
 	  			<tr>
