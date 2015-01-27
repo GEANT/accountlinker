@@ -71,6 +71,7 @@ span.metanav {
 </head>
 
   <body>
+<?php #echo '<pre>';print_r($this->accounts);echo '</pre>';exit(); ?>
 
     <div class="navbar navbar-default navbar-static-top header" role="navigation">
       <div class="container-fluid">
@@ -86,15 +87,14 @@ span.metanav {
     </div>
 
     <div class="container">
-    
-    
+        
       <div class="row">
 		<div class="col-md-12">
 		
 			<form action="" accept-charset="UTF-8" method="post" class="whatever form-inline" id="c">
 			  	<div class="form-group">  
-					<label for="smart_id">TAL_ID</label>
-					<input type="text" id="smart_id" name="smart_id" class="form-control" />
+					<label for="tal_id">TAL_ID</label>
+					<input type="text" id="tal_id" name="tal_id" class="form-control" />
 				</div>
 			  	<div class="form-group">  
 					<input type="submit" value="Search!" class="btn btn-default" />  	
@@ -123,10 +123,27 @@ span.metanav {
 			</form>
 		</div>
 	</div><!--/row-->
-	
-	
-	
+		
 	<hr />
+	
+	<?php if (!empty($this->accounts)): ?>
+	<?php foreach ($this->accounts as $key => $account): ?>	
+	<div class="panel panel-default">
+	  <div class="panel-heading">Account ID <?php echo $key; ?></div>
+	  		<table class="table table-hover table-striped">
+	  			<tbody>
+	  			<?php foreach ($account as $attr): ?>
+	  			<tr>
+	    			<th scope="row" class="col-md-3"><?php echo $attr['attribute_name'] ?></th><td><?php echo $attr['attribute_value'] ?></td>
+	    		</tr>
+				<?php endforeach; ?>
+			</tbody>
+	 		</table>
+	</div>
+	<?php endforeach; ?>	
+	<?php endif; ?>
+	
+	
     <footer>
     	<p>A service provided by <a href="https://www.terena.org">TERENA</a></p>
     </footer>

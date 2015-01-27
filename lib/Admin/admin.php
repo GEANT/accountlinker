@@ -39,9 +39,9 @@ class sspmod_accountLinker_Admin_admin {
 		return new $storeClassName($config->toArray());
 	}
 
-	public function getAccounts()
+	public function getAccounts($tal_id)
 	{
-		return $this->_store->getAccounts();
+		return $this->_store->getAccounts($tal_id);
 	}
 	
 	/**

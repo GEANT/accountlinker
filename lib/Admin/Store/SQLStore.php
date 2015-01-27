@@ -49,12 +49,12 @@ class sspmod_accountLinker_Admin_Store_SQLStore {
 		$this->_password = $config['password'];
 	}
 
-	public function getAccounts()
+	public function getAccounts($tal_id)
 	{
 		$dbh = $this->_getStore();
-		$stmt = $dbh->prepare("SELECT account_id, user_id FROM accounts");
-		$stmt->execute();
-		return $stmt->fetchAll(PDO::FETCH_ASSOC);
+		$stmt = $dbh->prepare("SELECT * FROM vw_attributes_new where user_id=?");
+		$stmt->execute(array($tal_id));
+		return $stmt->fetchAll(PDO::FETCH_GROUP | PDO::FETCH_ASSOC);
 	}
 
 	public function searchAccount($type, $value, $accountIds)

@@ -10,6 +10,6 @@ $meh = $adminConfig->getValue('logfile', '/var/simplesamlphp.log');
 $accountAdmin = new sspmod_accountLinker_Admin_admin($adminConfig);
 
 $tpl = new SimpleSAML_XHTML_Template($config, 'accountLinker:admin.tpl.php');
-$tpl->accounts = $accountAdmin->getAccounts();
+$tpl->accounts = $accountAdmin->getAccounts((int) $_POST['tal_id']);
 $tpl->show();
 ?>
