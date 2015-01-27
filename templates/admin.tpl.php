@@ -79,8 +79,15 @@ span.metanav {
           <a class="navbar-brand" href="/">TERENA Account Linker</a>
         </div>
         <div class="navbar-collapse collapse">
-          <ul class="nav navbar-nav navbar-right">
-            <li class="navbar-text">TERENA</li>
+          <ul class="nav navbar-nav navbar-right">		
+			<form method="post" class="navbar-form navbar-left" id="c">
+			  	<div class="form-group">  
+					<input type="text" id="tal_id" name="tal_id" class="form-control" placeholder="TAL_ID" />
+				</div>
+			  	<div class="form-group">  
+					<input type="submit" value="Search!" class="btn btn-default" />  	
+			  	</div>	
+			</form>
           </ul>
         </div>
       </div>
@@ -90,22 +97,12 @@ span.metanav {
         
       <div class="row">
 		<div class="col-md-12">
-		
-			<form action="" accept-charset="UTF-8" method="post" class="whatever form-inline" id="c">
-			  	<div class="form-group">  
-					<label for="tal_id">TAL_ID</label>
-					<input type="text" id="tal_id" name="tal_id" class="form-control" />
-				</div>
-			  	<div class="form-group">  
-					<input type="submit" value="Search!" class="btn btn-default" />  	
-			  	</div>	
-			</form>
+
 				
 		</div>
 	</div>
 	<div class="row">
 		<div class="col-md-12">
-			<a href="#" class="reset">reset</a>
 			<form action="" accept-charset="UTF-8" method="post" class="searchform form-inline" id="c">
 			  	<div class="form-group">  
 					<label>Show all accounts that logged in to</label>
