@@ -1,23 +1,30 @@
 <?php
 $version = '0.0.2';
 header('P3P:CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT"');
-?><!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="utf-8" />
-	<title>TAL Admin</title>
-
-
-<?php
-echo '<!-- JQuery -->';
-echo '<script type="text/javascript" language="javascript" src="' . SimpleSAML_Module::getModuleURL('accountLinker/resources/jquery.js') . '"></script>
-<script type="text/javascript" language="javascript" src="' . SimpleSAML_Module::getModuleURL('accountLinker/resources/jquery-ui.js') . '"></script>
-';
-
-// todo: add option loading here by echoing out javascript, same as in discojuice module
-echo '<!-- AccountLinker -->
-<script type="text/javascript" language="javascript" src="' . SimpleSAML_Module::getModuleURL('accountLinker/resources/admin.js?v=' . $version ) . '"></script>';
 ?>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAL Search</title>
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.6.1/html5shiv.js" type="text/javascript"></script>
+    <![endif]-->
+
+	<?php
+	echo '<!-- JQuery -->';
+	echo '<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>';
+	echo '<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
+	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>';
+	echo '<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet">';
+	// todo: add option loading here by echoing out javascript, same as in discojuice module
+	echo '<!-- AccountLinker -->
+	<script type="text/javascript" language="javascript" src="' . SimpleSAML_Module::getModuleURL('accountLinker/resources/admin.js?v=' . $version ) . '"></script>';
+	?>
 
 <style type="text/css">
 div.infobox {
@@ -63,26 +70,69 @@ span.metanav {
 </style>
 </head>
 
-<h1>Account admin</h1>
+  <body>
 
-<p>Legacy smart_id importer</p>
-<form action="" accept-charset="UTF-8" method="post" class="whatever" id="c">
-<label for="smart_id">smart_id</label><input type="text" id="smart_id" name="smart_id" />
-<input type="submit" value="Go!" />
-</form>
+    <div class="navbar navbar-default navbar-static-top header" role="navigation">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="/">TERENA Account Linker</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li class="navbar-text">TERENA</li>
+          </ul>
+        </div>
+      </div>
+    </div>
 
-<form action="" accept-charset="UTF-8" method="post" class="searchform" id="c">
-<p>Show all accounts that logged in to
-<input type="text" name="sp" />
-using IdP
-<input type="text" name="idp" />
-with attribute value
-<input type="text" name="attr" />
-<span><a href="#" class="reset">reset</a></span>
-</p>
-</form>
+    <div class="container">
+    
+    
+      <div class="row">
+		<div class="col-md-12">
+		
+			<form action="" accept-charset="UTF-8" method="post" class="whatever form-inline" id="c">
+			  	<div class="form-group">  
+					<label for="smart_id">TAL_ID</label>
+					<input type="text" id="smart_id" name="smart_id" class="form-control" />
+				</div>
+			  	<div class="form-group">  
+					<input type="submit" value="Search!" class="btn btn-default" />  	
+			  	</div>	
+			</form>
+				
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<a href="#" class="reset">reset</a>
+			<form action="" accept-charset="UTF-8" method="post" class="searchform form-inline" id="c">
+			  	<div class="form-group">  
+					<label>Show all accounts that logged in to</label>
+					<input type="text" name="sp" class="form-control" />
+				</div>
+				
+				<div class="form-group">  
+					<label>using IdP</label>
+					<input type="text" name="idp" class="form-control" />
+				</div>
+				<div class="form-group">  
+					<label>with attribute value</label>
+					<input type="text" name="attr" class="form-control" />
+				</div>	
+			</form>
+		</div>
+	</div><!--/row-->
+	
+	
+	
+	<hr />
+    <footer>
+    	<p>A service provided by <a href="https://www.terena.org">TERENA</a></p>
+    </footer>
+
+    </div><!-- /container -->
 
 
-<?php
-$this->includeAtTemplateBase('includes/footer.php');
-?>
+  </body>
+</html>

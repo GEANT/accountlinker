@@ -5,14 +5,14 @@ if (typeof AccountLinker == "undefined") var AccountLinker = {};
 
 AccountLinker.Control = {
 
-	"url" : "https://login.terena.org/wayf/module.php/accountLinker/search.php",
+	"url" : "https://test-login.terena.org/wayf/module.php/accountLinker/search.php",
 
 	"searchboxInit" : function() {
 		var that = this;
 		$("form.searchform input").change(function(e){
 			that.load(e.target);
 		});
-		$("form.searchform a.reset").click(function(e){
+		$("a.reset").click(function(e){
 			e.preventDefault();
 			that.reset(e.target);
 		});

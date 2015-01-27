@@ -4,7 +4,6 @@ $session = SimpleSAML_Session::getInstance();
 
 SimpleSAML_Utilities::requireAdmin();
 
-
 $adminConfig = SimpleSAML_Configuration::getConfig('module_accountlinker.php');
 $meh = $adminConfig->getValue('logfile', '/var/simplesamlphp.log');
 
