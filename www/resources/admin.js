@@ -101,32 +101,6 @@ AccountLinker.Control = {
 
 	},
 
-	"addLinkHandler": function() {
-		var that = this;
-
-		$("div.infobox a.link").click(function(e){
-			e.preventDefault();
-			that.cloneSearchBox(e.target);
-			that.reset();
-		});
-
-
-	},
-
-	"cloneSearchBox": function(elm) {
-		var that = this;
-		// clone element and increment id
-		var frm = $('form.searchform');
-		var newId = frm.attr('id')+frm.length;
-		var clone = $(elm).replaceWith(
-			$(frm[0])
-			.clone(true)
-			.find("input:text").val("").end()
-			.attr('id', newId)
-		);
-		$('#'+newId).parent().css('background', '#d1d1d1');
-	},
-
 	"resetFormFields": function(elm) {
 		elm.find(':input').each(function() {
 		    switch(this.type) {

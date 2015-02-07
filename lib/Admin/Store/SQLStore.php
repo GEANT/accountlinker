@@ -81,11 +81,11 @@ class sspmod_accountLinker_Admin_Store_SQLStore {
 			break;
 			case 'attr':
 				//$query = "select attr.account_id, attr.value, a.user_id, a.entityid_id, attr.attributeproperty_id
-				//from accounts a left join attributes attr on (a.account_id = attr.account_id) 
+				//from accounts a left join attributes attr on (a.account_id = attr.account_id)
 				//where attr.account_id IN (select account_id from attributes where value ILIKE '%".$value."%')";
 				$query = "select e.name, attr.account_id, attr.value, a.user_id, a.entityid_id, attr.attributeproperty_id
-				from entityids e left join accounts a on (e.entityid_id = a.entityid_id) 
-				left join attributes attr on (a.account_id = attr.account_id) 
+				from entityids e left join accounts a on (e.entityid_id = a.entityid_id)
+				left join attributes attr on (a.account_id = attr.account_id)
 				where attr.account_id IN (select account_id from attributes where value ILIKE '%".$value."%')";
 				if ($accountIds) {
 					$query .= " AND a.account_id IN (".implode(',', $accountIds).")";

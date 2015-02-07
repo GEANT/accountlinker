@@ -10,7 +10,7 @@ class sspmod_accountLinker_Admin_admin {
 	 * Holds the datastore
 	 */
 	protected $_store = null;
-	
+
 	private $_namespace;
 
 	public function __construct($config)
@@ -43,7 +43,7 @@ class sspmod_accountLinker_Admin_admin {
 	{
 		return $this->_store->getAccounts($tal_id);
 	}
-	
+
 	/**
 	 * @todo add parameter so you can clear ONE instance of the search
 	 *
@@ -60,16 +60,12 @@ class sspmod_accountLinker_Admin_admin {
 		$accountIds = null;
 
 		if (isset($_SESSION[$this->_namespace][$session])) {
-			#foreach ($_SESSION[$this->_namespace] as $k => $v) {
-			#	$accountIds = array_keys($v);			
-			#}
 			$accountIds = array_keys($_SESSION[$this->_namespace][$session]);
 		}
 
 		$result = $this->_store->searchAccount($type, $value, $accountIds);
-		#$_SESSION[$this->_namespace][$type] = $result;
 		$_SESSION[$this->_namespace][$session] = $result;
-		
+
 
 		return $result;
 	}
