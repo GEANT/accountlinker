@@ -59,46 +59,6 @@ AccountLinker.Control = {
 		//Object.keys(this.data).length
 
 		var items = [];
-		items.push('<div class="result_container">');
-		$.each(this.data, function(i, item) {
-			// group block
-			items.push('<div class="infobox outerbox">');			
-			items.push('<div class="grnav">group '+i+'</div>');
-
-				// account block
-				$.each(item, function(j, val) {
-					items.push('<div class="infobox">');
-					// items.push('<div>acc: '+j+'</div>')
-					items.push('<h2>'+val.entityid_name+'</h2>');
-					// attributes
-					items.push('<ul>');
-					$.each(val.attributes, function(k, v) {
-					    items.push('<li>'+k+':'+v+'</li>');
-					});					
-					items.push('</ul>');
-					if (!search) {
-						items.push('<a href="#">Link this account to parent group</a>');
-					}
-					items.push('</div>');
-				});
-
-			if (search) {
-				items.push('<a href="#" class="link">Add account to this group</a>');
-			}
-			items.push('</div>');
-		});
-		items.push('</div>');
-		var frm = $(elm).parent().parent();
-		//clear element
-		frm.next('div.result_container').remove();
-		frm.after( items.join('') );
-		
-		$('div.outerbox').each(function(i, elm){
-		
-		});
-		
-		that.addLinkHandler();
-
 	},
 
 	"resetFormFields": function(elm) {
