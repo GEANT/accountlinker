@@ -63,14 +63,16 @@ header('P3P:CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT
 			  	<div class="form-group">
 					<label>Logged in to SP</label>
 					<select name="sp" class="form-control input-sm">
+					<option>---</option>
 					<?php foreach ($this->serviceproviders as $sp): ?>
-						<option><?php echo $sp; ?></option>
+						<option value="<?php echo $sp; ?>"><?php echo $sp; ?></option>
 					<?php endforeach; ?>
 					</select>
 				</div>
 				<div class="form-group">
 					<label>using IdP</label>
 					<select name="idp" class="form-control input-sm">
+					<option>---</option>
 					<?php foreach ($this->identityproviders as $idp_id => $idp_name): ?>
 						<option value="<?php echo $idp_id; ?>"><?php echo $idp_name[0]; ?></option>
 					<?php endforeach; ?>
