@@ -56,6 +56,22 @@ class sspmod_accountLinker_Admin_Store_SQLStore {
 		$stmt->execute(array($tal_id));
 		return $stmt->fetchAll(PDO::FETCH_GROUP | PDO::FETCH_ASSOC);
 	}
+	
+	public function getAllSp()
+	{
+		$dbh = $this->_getStore();
+		$stmt = $dbh->prepare("select distinct(spentityid) from users_spentityids");
+		$stmt->execute();
+		return $stmt->fetchAll(PDO::FETCH_COLUMN);		
+	}
+
+	public function getAllIdp()
+	{
+		$dbh = $this->_getStore();
+		$stmt = $dbh->prepare("select entityid_id, name from entityids where type='idp'");
+		$stmt->execute();
+		return $stmt->fetchAll(PDO::FETCH_COLUMN | PDO::FETCH_GROUP);		
+	}
 
 	public function searchAccount($type, $value, $accountIds)
 	{

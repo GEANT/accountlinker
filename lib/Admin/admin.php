@@ -44,6 +44,16 @@ class sspmod_accountLinker_Admin_admin {
 		return $this->_store->getAccounts($tal_id);
 	}
 
+	public function getAllSp()
+	{
+		return $this->_store->getAllSp();
+	}
+	
+	public function getAllIdp()
+	{
+		return $this->_store->getAllIdp();
+	}
+	
 	/**
 	 * @todo add parameter so you can clear ONE instance of the search
 	 *

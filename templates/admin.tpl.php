@@ -18,9 +18,10 @@ header('P3P:CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT
 	<?php
 	echo '<!-- JQuery -->';
 	echo '<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>';
-	echo '<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
-	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>';
+	echo '<!-- Bootstrap -->';
 	echo '<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet">';
+
+	echo '<!-- AccountLinker local -->';
 	echo '<script type="text/javascript" language="javascript" src="' . SimpleSAML_Module::getModuleURL('accountLinker/resources/admin.js?v=' . $version ) . '"></script>';
 	echo '<link href="resources/admin.css" media="all" rel="stylesheet" />';
 	?>
@@ -34,14 +35,14 @@ header('P3P:CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT
           <a class="navbar-brand" href="/">TERENA Account Linker</a>
         </div>
         <div class="navbar-collapse collapse">
-          <ul class="nav navbar-nav navbar-right">		
+          <ul class="nav navbar-nav navbar-right">
 			<form method="post" class="navbar-form navbar-left" id="c">
-			  	<div class="form-group">  
+			  	<div class="form-group">
 					<input type="text" id="tal_id" name="tal_id" class="form-control" placeholder="TAL_ID" />
 				</div>
-			  	<div class="form-group">  
-					<input type="submit" value="Search!" class="btn btn-default" />  	
-			  	</div>	
+			  	<div class="form-group">
+					<input type="submit" value="Search!" class="btn btn-default" />
+			  	</div>
 			</form>
           </ul>
         </div>
@@ -49,38 +50,46 @@ header('P3P:CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT
     </div>
 
     <div class="container">
-        
+
       <div class="row">
 		<div class="col-md-12">
 
-				
+
 		</div>
 	</div>
 	<div class="row">
 		<div class="col-md-12">
-			<form action="" accept-charset="UTF-8" method="post" class="searchform form-inline" id="c">
-			  	<div class="form-group">  
-					<label>Show all accounts that logged in to</label>
-					<input type="text" name="sp" class="form-control" />
+			<form action="" accept-charset="UTF-8" method="post" class="searchform form-horizontal" id="c">
+			  	<div class="form-group">
+					<label>Logged in to SP</label>
+					<select name="sp" class="form-control input-sm">
+					<?php foreach ($this->serviceproviders as $sp): ?>
+						<option><?php echo $sp; ?></option>
+					<?php endforeach; ?>
+					</select>
 				</div>
-				
-				<div class="form-group">  
+				<div class="form-group">
 					<label>using IdP</label>
-					<input type="text" name="idp" class="form-control" />
+					<select name="idp" class="form-control input-sm">
+					<?php foreach ($this->identityproviders as $idp_id => $idp_name): ?>
+						<option value="<?php echo $idp_id; ?>"><?php echo $idp_name[0]; ?></option>
+					<?php endforeach; ?>
+					</select>
 				</div>
-				<div class="form-group">  
+				<div class="form-group">
 					<label>with attribute value</label>
 					<input type="text" name="attr" class="form-control" />
-				</div>	
+				</div>
+
 			</form>
 		</div>
 	</div><!--/row-->
-		
+
 	<hr />
-	
-	<?php if (!empty($this->accounts)): ?>	
+
+	<?php if (!empty($this->accounts)): ?>
 	<div class="panel panel-primary"><div class="panel-heading">TAL_ID <?php echo $this->tal_id; ?></div><div class="panel-body">
-		<?php foreach ($this->accounts as $key => $account): ?>	
+		<?php foreach ($this->accounts as $key => $account): ?>
 		<?php $entity_name = array_values(array_filter($account, function($v) { return $v['attribute_name'] == 'idpname'; }))[0]['attribute_value']; ?>
 		<div class="panel panel-info">
 		  <div class="panel-heading"><strong>Account <?php echo $key . ' - ' . $entity_name . ' (' . $account[0]['entity_name'] . ')' ?></strong></div>
@@ -94,11 +103,11 @@ header('P3P:CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT
 				</tbody>
 		 		</table>
 		</div>
-		<?php endforeach; ?>	
+		<?php endforeach; ?>
 	</div></div>
 	<?php endif; ?>
-	
-	
+
+
     <footer>
     	<p>A service provided by <a href="https://www.terena.org">TERENA</a></p>
     </footer>
