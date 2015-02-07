@@ -71,7 +71,6 @@ span.metanav {
 </head>
 
   <body>
-<?php #echo '<pre>';print_r($this->accounts);echo '</pre>';exit(); ?>
 
     <div class="navbar navbar-default navbar-static-top header" role="navigation">
       <div class="container-fluid">
