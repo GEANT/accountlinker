@@ -8,7 +8,7 @@ header('P3P:CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TAL Search</title>
+    <title>TAL</title>
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
     <!--[if lt IE 9]>
@@ -21,53 +21,9 @@ header('P3P:CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT
 	echo '<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
 	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>';
 	echo '<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet">';
-	// todo: add option loading here by echoing out javascript, same as in discojuice module
-	echo '<!-- AccountLinker -->
-	<script type="text/javascript" language="javascript" src="' . SimpleSAML_Module::getModuleURL('accountLinker/resources/admin.js?v=' . $version ) . '"></script>';
+	echo '<script type="text/javascript" language="javascript" src="' . SimpleSAML_Module::getModuleURL('accountLinker/resources/admin.js?v=' . $version ) . '"></script>';
+	echo '<link href="resources/admin.css" media="all" rel="stylesheet" />';
 	?>
-
-<style type="text/css">
-div.infobox {
-	border: 1px solid #B1B1B1;
-	border-radius: 10px 10px 10px 10px;
-	margin: 5px 0 30px;
-	padding: 0 6px 0 6px;
-}
-div.outerbox {
-	padding:20px;
-}
-div.grnav {
-	background: #fff;
-    color: #000000;
-	border: 1px solid #B1B1B1;
-	border-radius: 6px 6px 6px 6px;
-    font-weight: bold;
-    height: 22px;
-    margin: -38px 0 0;
-    padding: 5px 5px;
-    width: 100px;
-}    
-dl.infolist dd {
-    font-size: 92%;
-    margin-bottom: 12px;
-}
-dt:after {
-    content: ":";
-}
-dt {
-    margin-bottom: 2px;
-}
-dt {
-    clear: left;
-    float: left;
-    text-align: left;
-    width: 80px;
-}
-span.metanav {
-    font-size: 11px;
-}
-
-</style>
 </head>
 
   <body>
