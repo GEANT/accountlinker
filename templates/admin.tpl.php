@@ -1,5 +1,5 @@
 <?php
-$version = '0.0.2';
+$version = '0.0.3';
 header('P3P:CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT"');
 ?>
 <!DOCTYPE html>
@@ -62,7 +62,7 @@ header('P3P:CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT
 			<form action="" accept-charset="UTF-8" method="post" class="searchform form-horizontal" id="c">
 			  	<div class="form-group">
 					<label>Logged in to SP</label>
-					<select name="sp" class="form-control input-sm">
+					<select name="type[sp]" class="form-control input-sm">
 					<option>---</option>
 					<?php foreach ($this->serviceproviders as $sp): ?>
 						<option value="<?php echo $sp; ?>"><?php echo $sp; ?></option>
@@ -71,7 +71,7 @@ header('P3P:CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT
 				</div>
 				<div class="form-group">
 					<label>using IdP</label>
-					<select name="idp" class="form-control input-sm">
+					<select name="type[idp]" class="form-control input-sm">
 					<option>---</option>
 					<?php foreach ($this->identityproviders as $idp_id => $idp_name): ?>
 						<option value="<?php echo $idp_id; ?>"><?php echo $idp_name[0]; ?></option>
@@ -80,9 +80,11 @@ header('P3P:CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT
 				</div>
 				<div class="form-group">
 					<label>with attribute value</label>
-					<input type="text" name="attr" class="form-control" />
+					<input type="text" name="type[attr]" class="form-control" />
 				</div>
-
+			  	<div class="form-group">
+					<input type="submit" name="filter" value="Filter!" class="btn btn-default" />
+			  	</div>
 			</form>
 		</div>
 	</div><!--/row-->

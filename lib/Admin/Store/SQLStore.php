@@ -56,13 +56,13 @@ class sspmod_accountLinker_Admin_Store_SQLStore {
 		$stmt->execute(array($tal_id));
 		return $stmt->fetchAll(PDO::FETCH_GROUP | PDO::FETCH_ASSOC);
 	}
-	
+
 	public function getAllSp()
 	{
 		$dbh = $this->_getStore();
 		$stmt = $dbh->prepare("select distinct(spentityid) from users_spentityids");
 		$stmt->execute();
-		return $stmt->fetchAll(PDO::FETCH_COLUMN);		
+		return $stmt->fetchAll(PDO::FETCH_COLUMN);
 	}
 
 	public function getAllIdp()
@@ -70,7 +70,7 @@ class sspmod_accountLinker_Admin_Store_SQLStore {
 		$dbh = $this->_getStore();
 		$stmt = $dbh->prepare("select entityid_id, name from entityids where type='idp'");
 		$stmt->execute();
-		return $stmt->fetchAll(PDO::FETCH_COLUMN | PDO::FETCH_GROUP);		
+		return $stmt->fetchAll(PDO::FETCH_COLUMN | PDO::FETCH_GROUP);
 	}
 
 	public function searchAccount($type, $value, $accountIds)
@@ -96,9 +96,6 @@ class sspmod_accountLinker_Admin_Store_SQLStore {
 				$stmt = $dbh->prepare($query);
 			break;
 			case 'attr':
-				//$query = "select attr.account_id, attr.value, a.user_id, a.entityid_id, attr.attributeproperty_id
-				//from accounts a left join attributes attr on (a.account_id = attr.account_id)
-				//where attr.account_id IN (select account_id from attributes where value ILIKE '%".$value."%')";
 				$query = "select e.name, attr.account_id, attr.value, a.user_id, a.entityid_id, attr.attributeproperty_id
 				from entityids e left join accounts a on (e.entityid_id = a.entityid_id)
 				left join attributes attr on (a.account_id = attr.account_id)
@@ -110,8 +107,6 @@ class sspmod_accountLinker_Admin_Store_SQLStore {
 			break;
 
 		}
-		//select * from accounts where user_id IN (select user_id from groups_spentityids where spentityid ILIKE '%chris%');
-		//select * from accounts where entityid_id IN ( select entityid_id from entityids where name ILIKE '%terena%');
 		$stmt->execute();
 		$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 		$grouped = array();
