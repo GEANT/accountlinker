@@ -87,21 +87,20 @@ class sspmod_accountLinker_Admin_Store_SQLStore {
 		return $stmt->fetchAll(PDO::FETCH_COLUMN | PDO::FETCH_GROUP);
 	}
 
-	public function searchAccount($type)
+	public function searchAccount($filters)
 	{
 		$dbh = $this->_getStore();
-		$query = 'select * from vw_attributes_new where user_id in (select user_id from users_spentityids where 1=1)';
-		foreach ($type as $key => $value) {
-    		$query .= sprintf(' AND `%s` = :%s', $key, $key);
+		$query = 'select * from vw_attributes_new where 1=1';
+		if (!empty($filters['sp'])) {
+			$query .= ' AND user_id in (select user_id from users_spentityids where spentityid=:sp)';
 		}
 		$stmt = $dbh->prepare($query);
-		foreach ($type as $key => $value) {
+		foreach ($filters as $key => $value) {
 		    $stmt->bindValue(':'.$key, $value);
 		}
 				
 		$stmt->execute();
-		
-		return $stmt->fetchAll(PDO::FETCH_GROUP | PDO::FETCH_ASSOC);
+		return $stmt->fetchAll(PDO::FETCH_ASSOC);
 	}
 
 	/**
