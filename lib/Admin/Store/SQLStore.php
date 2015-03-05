@@ -62,7 +62,21 @@ class sspmod_accountLinker_Admin_Store_SQLStore {
 		$dbh = $this->_getStore();
 		$stmt = $dbh->prepare("select distinct(spentityid) from users_spentityids");
 		$stmt->execute();
-		return $stmt->fetchAll(PDO::FETCH_COLUMN);
+		$rows = $stmt->fetchAll(PDO::FETCH_COLUMN);
+		$metadataHandler = SimpleSAML_Metadata_MetaDataStorageHandler::getMetadataHandler();
+		foreach($rows as $row) {
+			if (isset($row)) {
+				try {
+					$spName = $metadataHandler->getMetaData($row, 'saml20-sp-remote');
+					$spName = (empty($spName['name']['en'])) ? $row : $spName['name']['en'];
+				}	catch (Exception $e) {
+					$spName = $row;
+				}
+				$names[$row] = $spName;
+			}
+		}
+		asort($names);
+		return $names;
 	}
 
 	public function getAllIdp()

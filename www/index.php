@@ -2,10 +2,7 @@
 $config = SimpleSAML_Configuration::getInstance();
 $session = SimpleSAML_Session::getInstance();
 
-$auth = new SimpleSAML_Auth_Simple('default-sp');
-$auth->requireAuth();
-
-$attrs = $auth->getAttributes();
+SimpleSAML_Utilities::requireAdmin();
 
 $adminConfig = SimpleSAML_Configuration::getConfig('module_accountlinker.php');
 $meh = $adminConfig->getValue('logfile', '/var/simplesamlphp.log');

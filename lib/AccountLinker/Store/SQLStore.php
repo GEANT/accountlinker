@@ -40,6 +40,11 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
 	private $_entityId;
 
 	/**
+	 * Metadata SP entity name
+	 */
+	private $_spEntityName = null;
+
+	/**
 	 * Metadata SpEntityId
 	 */
 	private $_spEntityId = null;
@@ -48,7 +53,7 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
 	 * Metadata attributes
 	 */
 	private $_attributes;
-	
+
 	/**
 	 * ErrorHandling Service url
 	 */
@@ -84,7 +89,7 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
 				throw new Exception('AccountLinking - Missing required option \'' . $param . '\'.');
 			}
 		}
-				
+
 		$this->_dsn = $config['dsn'];
 		$this->_ehsURL = "https://ds.incommon.org/FEH/sp-error.html";
 		$this->_username = $config['username'];
@@ -119,7 +124,7 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
 		$this->_entityidId = $this->hasEntityId();
 		return $this->_entityidId;
 	}
-	
+
 	/**
 	 * Check if entity_id exists
 	 *
@@ -134,7 +139,7 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
 		$this->_entityidId = $stmt->fetchColumn();
 		return $this->_entityidId;
 	}
-	
+
 	public function getEntityId()
 	{
 		return $this->_entityId;
@@ -192,10 +197,10 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
 		// @todo this exception must only show if none of the identifiable attributes are in the metadata
 		// throw new Exception('AccountLinking - Missing required identifiable attribute '.$row['name']);
 		//only deal with single values (eg, take first element of array)
-		
+
 		// @todo Check if IDP gives identifiable attributes AT ALL (should be at least one!). Otherwise throw error back to IDP
 		$count = 0;
-		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {	
+		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 			SimpleSAML_Logger::debug('AccountLinker: Checking for attribute \''.$row['name'].'\'');
 			if (isset($this->_attributes[$row['name']])) {
 				$count++;
@@ -220,13 +225,13 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
 			}
 			SimpleSAML_Logger::debug('AccountLinker: Attribute \''.$row['name'].'\' not found in metadata/datastore');
 		}
-		
-		if ($count === 0) {		
+
+		if ($count === 0) {
 			$error = 'Could not find any of the attributes to determine who you are';
-			SimpleSAML_Logger::debug('AccountLinker: EXCEPTION '.$error);	
+			SimpleSAML_Logger::debug('AccountLinker: EXCEPTION '.$error);
 			#throw new Exception('AccountLinking '.$error );
 			$this->_handleException();
-		}		
+		}
 
 		return false;
 	}
@@ -311,14 +316,14 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
 		// get stored attributes that are also metadata attributes (including newly inserted ones)
 		$stmt = $dbh->prepare("SELECT attributeproperty_id, name FROM attributeproperties WHERE name IN (".$metadataAttributeString.")");
 		$stmt->execute();
-		
+
 		// used for debugging only
 		$attributeMapping = array();
 
 		while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
 			$insertValues[$row[0]] = $metadataAttributes[$row[1]];
-			$attributeMapping[$row[0]] = $row[1]; 
-		}		
+			$attributeMapping[$row[0]] = $row[1];
+		}
 
 		try {
 			$dbh->beginTransaction();
@@ -339,7 +344,7 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
 			    	.$dbh->quote($value[0])."),";
 			    } else {
 			    	// multivalue attribute
-			    	foreach ($value as $val) {			    		
+			    	foreach ($value as $val) {
 			    		SimpleSAML_Logger::debug('AccountLinker: Inserting '.$attributeMapping[$attributePropertyId].' => \''.$val.'\'');
 			    		$query .= "(".$accountId.","
 			    		.$attributePropertyId.","
@@ -347,7 +352,7 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
 			    	}
 			    }
 			}
-			
+
 			$query = rtrim($query, ',');
 			$stmt = $dbh->prepare($query);
 			$stmt->execute();
@@ -394,7 +399,7 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
 			':user_id' => $userId,
 			':spentityid' => $this->_spEntityId
 		));
-		
+
 		SimpleSAML_Logger::debug('AccountLinker: Returning user_id '.$userId);
 		return $userId;
 	}
@@ -427,9 +432,9 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
 		));
 		return $this;
 	}
-	
+
 	private function _handleException()
-	{	
+	{
 		$data = array(
 			'sp_entityID' => $this->_spEntityId,
 			'idp_entityID' => $this->getEntityId()
