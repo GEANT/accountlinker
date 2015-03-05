@@ -10,7 +10,7 @@ $meh = $adminConfig->getValue('logfile', '/var/simplesamlphp.log');
 $accountAdmin = new sspmod_accountLinker_Admin_admin($adminConfig);
 
 if (isset($_POST['filter'])) {
-	$result = $accountAdmin->searchAccount($_REQUEST['type'], $_REQUEST['val'], $_REQUEST['session']);
+	$result = $accountAdmin->searchAccount($_REQUEST['type']);
 }
 
 $tpl = new SimpleSAML_XHTML_Template($config, 'accountLinker:admin.tpl.php');

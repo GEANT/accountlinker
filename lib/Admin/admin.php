@@ -63,17 +63,11 @@ class sspmod_accountLinker_Admin_admin {
 		unset($_SESSION[$this->_namespace][$session]);
 	}
 
-	public function searchAccount($type, $value, $session)
+	public function searchAccount($type)
 	{
 	    assert('is_string($type)');
 
-		$accountIds = null;
-
-		if (isset($_SESSION[$this->_namespace][$session])) {
-			$accountIds = array_keys($_SESSION[$this->_namespace][$session]);
-		}
-
-		$result = $this->_store->searchAccount($type, $value, $accountIds);
+		$result = $this->_store->searchAccount($type);
 		$_SESSION[$this->_namespace][$session] = $result;
 
 
