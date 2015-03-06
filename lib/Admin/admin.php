@@ -69,8 +69,13 @@ class sspmod_accountLinker_Admin_admin {
 
 		$result = $this->_store->searchAccount($filters);
 		$_SESSION[$this->_namespace][$session] = $result;
-
-
+		
+		$assoc_arr = array_reduce($result, function ($result, $item) {
+		    #$result[$item['text']] = $item['id'];
+		    return $result;
+		}, array());
+		
+		#echo '<pre>';print_r($result);echo '</pre>';exit();
 		return $result;
 	}
 

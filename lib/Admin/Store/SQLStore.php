@@ -100,7 +100,7 @@ class sspmod_accountLinker_Admin_Store_SQLStore {
 		}
 				
 		$stmt->execute();
-		return $stmt->fetchAll(PDO::FETCH_ASSOC);
+		return $stmt->fetchAll(PDO::FETCH_GROUP | PDO::FETCH_ASSOC);
 	}
 
 	/**
