@@ -4,7 +4,12 @@
  *
  * @author Christian Gijtenbeek
  */
-class sspmod_accountLinker_AccountLinker_Store_SQLStore {
+class sspmod_accountLinker_AccountLinker_Store_SQLStore implements SplSubject {
+
+	/**
+	 * Holds the observers
+	 */
+  private $_observers;
 
 	/**
 	 * DSN config.
@@ -82,6 +87,8 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
 	 */
 	public function __construct($config)
 	{
+		$this->_observers = new SplObjectStorage();
+	
 		$this->_accountLinkerConfig = SimpleSAML_Configuration::getConfig('module_accountlinker.php');
 		foreach (array('dsn', 'username', 'password') as $param) {
 			$config[$param] = $this->_accountLinkerConfig->getString($param, NULL);
@@ -94,6 +101,25 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
 		$this->_ehsURL = "https://ds.incommon.org/FEH/sp-error.html";
 		$this->_username = $config['username'];
 		$this->_password = $config['password'];
+	}
+	
+	public function attach(SplObserver $observer) {
+		$this->_observers->attach($observer);
+	}
+
+	public function detach(SplObserver $observer) {
+		$this->_observers->detach($observer);
+	}
+
+	public function notify() {
+		foreach ($this->_observers as $observer) {
+			$observer->update($this);
+		}
+	}
+	
+	public function getLastEntity()
+	{
+		return "10000000100000001000000010000000";
 	}
 
 	/**

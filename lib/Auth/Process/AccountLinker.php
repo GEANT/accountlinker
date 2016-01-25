@@ -36,11 +36,6 @@ class sspmod_accountLinker_Auth_Process_AccountLinker extends SimpleSAML_Auth_Pr
 	    	: 'TAL';
 	}
 
-	public static function test($state)
-	{
-		#$config = SimpleSAML_Configuration::getConfig();
-	}
-
 	/**
 	 * Get Account Linking Store
 	 *
@@ -59,7 +54,17 @@ class sspmod_accountLinker_Auth_Process_AccountLinker extends SimpleSAML_Auth_Pr
 			'AccountLinker_Store'
 		);
 		unset($storeConfig['class']);
-		return new $storeClassName($storeConfig);
+		$store = new $storeClassName($storeConfig);
+		// @todo store in config
+		if (1 == 1) {
+			$observerClassName = SimpleSAML_Module::resolveClass(
+				'accountLinker:Dashy',
+				'AccountLinker_Observer'
+			);		
+			$observer = new $observerClassName;
+			$store->attach($observer);
+		}
+		return $store;
 	}
 
 	/**
@@ -93,6 +98,8 @@ class sspmod_accountLinker_Auth_Process_AccountLinker extends SimpleSAML_Auth_Pr
 		}
 
 		SimpleSAML_Logger::debug('AccountLinker: Inserting attributes');
+		
+		$this->_store->notify();
 
 		if ($this->_store->saveAttributes()) {
 			$request['Attributes'][$this->_accountIdPrefix.':user_id'] = array(
