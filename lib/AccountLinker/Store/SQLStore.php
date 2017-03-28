@@ -425,6 +425,11 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
 			':entity_id' => $this->_getEntityidId(),
 			':aorder' => 3
 		));
+		$stmt->execute(array(
+			':attribute_id' => 259,
+			':entity_id' => $this->_getEntityidId(),
+			':aorder' => 4
+		));
 		return $this;
 	}
 	
