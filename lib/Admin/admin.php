@@ -10,7 +10,7 @@ class sspmod_accountLinker_Admin_admin {
 	 * Holds the datastore
 	 */
 	protected $_store = null;
-	
+
 	private $_namespace;
 
 	public function __construct($config)
@@ -39,9 +39,19 @@ class sspmod_accountLinker_Admin_admin {
 		return new $storeClassName($config->toArray());
 	}
 
-	public function getAccounts()
+	public function getAccounts($tal_id)
 	{
-		return $this->_store->getAccounts();
+		return $this->_store->getAccounts($tal_id);
+	}
+
+	public function getAllSp()
+	{
+		return $this->_store->getAllSp();
+	}
+	
+	public function getAllIdp()
+	{
+		return $this->_store->getAllIdp();
 	}
 	
 	/**
@@ -53,24 +63,19 @@ class sspmod_accountLinker_Admin_admin {
 		unset($_SESSION[$this->_namespace][$session]);
 	}
 
-	public function searchAccount($type, $value, $session)
+	public function searchAccount($filters)
 	{
 	    assert('is_string($type)');
 
-		$accountIds = null;
-
-		if (isset($_SESSION[$this->_namespace][$session])) {
-			#foreach ($_SESSION[$this->_namespace] as $k => $v) {
-			#	$accountIds = array_keys($v);			
-			#}
-			$accountIds = array_keys($_SESSION[$this->_namespace][$session]);
-		}
-
-		$result = $this->_store->searchAccount($type, $value, $accountIds);
-		#$_SESSION[$this->_namespace][$type] = $result;
+		$result = $this->_store->searchAccount($filters);
 		$_SESSION[$this->_namespace][$session] = $result;
 		
-
+		$assoc_arr = array_reduce($result, function ($result, $item) {
+		    #$result[$item['text']] = $item['id'];
+		    return $result;
+		}, array());
+		
+		#echo '<pre>';print_r($result);echo '</pre>';exit();
 		return $result;
 	}
 

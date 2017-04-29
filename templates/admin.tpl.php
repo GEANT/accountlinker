@@ -1,88 +1,123 @@
 <?php
-$version = '0.0.2';
+$version = '0.0.3';
 header('P3P:CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT"');
-?><!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="utf-8" />
-	<title>TAL Admin</title>
-
-
-<?php
-echo '<!-- JQuery -->';
-echo '<script type="text/javascript" language="javascript" src="' . SimpleSAML_Module::getModuleURL('accountLinker/resources/jquery.js') . '"></script>
-<script type="text/javascript" language="javascript" src="' . SimpleSAML_Module::getModuleURL('accountLinker/resources/jquery-ui.js') . '"></script>
-';
-
-// todo: add option loading here by echoing out javascript, same as in discojuice module
-echo '<!-- AccountLinker -->
-<script type="text/javascript" language="javascript" src="' . SimpleSAML_Module::getModuleURL('accountLinker/resources/admin.js?v=' . $version ) . '"></script>';
 ?>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAL</title>
 
-<style type="text/css">
-div.infobox {
-	border: 1px solid #B1B1B1;
-	border-radius: 10px 10px 10px 10px;
-	margin: 5px 0 30px;
-	padding: 0 6px 0 6px;
-}
-div.outerbox {
-	padding:20px;
-}
-div.grnav {
-	background: #fff;
-    color: #000000;
-	border: 1px solid #B1B1B1;
-	border-radius: 6px 6px 6px 6px;
-    font-weight: bold;
-    height: 22px;
-    margin: -38px 0 0;
-    padding: 5px 5px;
-    width: 100px;
-}    
-dl.infolist dd {
-    font-size: 92%;
-    margin-bottom: 12px;
-}
-dt:after {
-    content: ":";
-}
-dt {
-    margin-bottom: 2px;
-}
-dt {
-    clear: left;
-    float: left;
-    text-align: left;
-    width: 80px;
-}
-span.metanav {
-    font-size: 11px;
-}
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.6.1/html5shiv.js" type="text/javascript"></script>
+    <![endif]-->
 
-</style>
+	<?php
+	echo '<!-- JQuery -->';
+	echo '<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>';
+	echo '<!-- Bootstrap -->';
+	echo '<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet">';
+
+	echo '<!-- AccountLinker local -->';
+	echo '<script type="text/javascript" language="javascript" src="' . SimpleSAML_Module::getModuleURL('accountLinker/resources/admin.js?v=' . $version ) . '"></script>';
+	echo '<link href="resources/admin.css" media="all" rel="stylesheet" />';
+	?>
 </head>
 
-<h1>Account admin</h1>
+  <body>
 
-<p>Legacy smart_id importer</p>
-<form action="" accept-charset="UTF-8" method="post" class="whatever" id="c">
-<label for="smart_id">smart_id</label><input type="text" id="smart_id" name="smart_id" />
-<input type="submit" value="Go!" />
-</form>
+    <div class="navbar navbar-default navbar-static-top header" role="navigation">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="/">TERENA Account Linker</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+			<form method="post" class="navbar-form navbar-left" id="c">
+			  	<div class="form-group">
+					<input type="text" id="tal_id" name="tal_id" class="form-control" placeholder="TAL_ID" />
+				</div>
+			  	<div class="form-group">
+					<input type="submit" value="Search!" class="btn btn-default" />
+			  	</div>
+			</form>
+          </ul>
+        </div>
+      </div>
+    </div>
 
-<form action="" accept-charset="UTF-8" method="post" class="searchform" id="c">
-<p>Show all accounts that logged in to
-<input type="text" name="sp" />
-using IdP
-<input type="text" name="idp" />
-with attribute value
-<input type="text" name="attr" />
-<span><a href="#" class="reset">reset</a></span>
-</p>
-</form>
+    <div class="container">
+
+      <div class="row">
+		<div class="col-md-12">
 
 
-<?php
-$this->includeAtTemplateBase('includes/footer.php');
-?>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<form action="" accept-charset="UTF-8" method="post" class="searchform form-horizontal" id="c">
+			  	<div class="form-group">
+					<label>Logged in to SP</label>
+					<select name="type[sp]" class="form-control input-sm">
+					<option>---</option>
+					<?php foreach ($this->serviceproviders as $id => $name): ?>
+						<option value="<?php echo $id; ?>"><?php echo $name; ?></option>
+					<?php endforeach; ?>
+					</select>
+				</div>
+				<div class="form-group">
+					<label>using IdP</label>
+					<select name="type[idp]" class="form-control input-sm">
+					<option>---</option>
+					<?php foreach ($this->identityproviders as $idp_id => $idp_name): ?>
+						<option value="<?php echo $idp_id; ?>"><?php echo $idp_name[0]; ?></option>
+					<?php endforeach; ?>
+					</select>
+				</div>
+				<div class="form-group">
+					<label>with attribute value</label>
+					<input type="text" name="type[attr]" class="form-control" />
+				</div>
+			  	<div class="form-group">
+					<input type="submit" name="filter" value="Filter!" class="btn btn-default" />
+			  	</div>
+			</form>
+		</div>
+	</div><!--/row-->
+
+	<hr />
+
+	<?php if (!empty($this->accounts)): ?>
+	<div class="panel panel-primary"><div class="panel-heading">TAL_ID <?php echo $this->tal_id; ?></div><div class="panel-body">
+		<?php foreach ($this->accounts as $key => $account): ?>
+		<?php $entity_name = array_values(array_filter($account, function($v) { return $v['attribute_name'] == 'idpname'; }))[0]['attribute_value']; ?>
+		<div class="panel panel-info">
+		  <div class="panel-heading"><strong>Account <?php echo $key . ' - ' . $entity_name . ' (' . $account[0]['entity_name'] . ')' ?></strong></div>
+		  		<table class="table table-hover">
+		  			<tbody>
+		  			<?php foreach ($account as $attr): ?>
+		  			<tr>
+		    			<th scope="row" class="col-md-3"><?php echo $attr['attribute_name'] ?></th><td><?php echo $attr['attribute_value'] ?></td>
+		    		</tr>
+					<?php endforeach; ?>
+				</tbody>
+		 		</table>
+		</div>
+		<?php endforeach; ?>
+	</div></div>
+	<?php endif; ?>
+
+
+    <footer>
+    	<p>A service provided by <a href="https://www.terena.org">TERENA</a></p>
+    </footer>
+
+    </div><!-- /container -->
+
+
+  </body>
+</html>
