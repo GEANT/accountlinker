@@ -389,9 +389,20 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
 	{
 		$userId = $this->getUserId();
 		$dbh = $this->_getStore();
-		$stmt = $dbh->prepare("INSERT INTO users_spentityids (user_id, spentityid) VALUES (:user_id, :spentityid)");
+		$stmt = $dbh->prepare("INSERT INTO users_spentityids (
+            user_id,
+            account_id,
+            spentityid,
+            idp_entityid
+         ) VALUES (
+            :user_id,
+            :account_id,
+            :spentityid,
+            :idp_entityid)");
 		$stmt->execute(array(
 			':user_id' => $userId,
+			':idp_entityid' => $this->getEntityId(),
+			':account_id' => $this->_getAccountId(),
 			':spentityid' => $this->_spEntityId
 		));
 		
