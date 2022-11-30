@@ -393,17 +393,23 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
             user_id,
             account_id,
             spentityid,
-            idp_entityid
+            idp_entityid,
+            ip_addr,
+            user_agent
         ) VALUES (
             :user_id,
             :account_id,
             :spentityid,
-            :idp_entityid)");
+            :idp_entityid,
+            :ip_addr,
+            :user_agent)");
         $stmt->execute(array(
             ':user_id' => $userId,
             ':idp_entityid' => $this->getEntityId(),
             ':account_id' => $this->_getAccountId(),
-            ':spentityid' => $this->_spEntityId
+            ':spentityid' => $this->_spEntityId,
+            ':ip_addr' => $_SERVER['REMOTE_ADDR'] ?? '::1',
+            ':user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? ''
         ));
 
         SimpleSAML_Logger::stats('AccountLinker: Returning user_id '.$userId);
