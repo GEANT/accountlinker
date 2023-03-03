@@ -62,8 +62,7 @@ class AccountLinker extends Auth\ProcessingFilter
         }
 
         $storeConfig = $config['store'];
-        $storeClassName = Module::resolveClass($storeConfig['class'], 'Store\SQLStore');
-        Assert::isInstanceOf($storeClassName, SQLStore::class);
+        $storeClassName = Module::resolveClass($storeConfig['class'], 'SQLStore');
         unset($storeConfig['class']);
 
         return new $storeClassName($storeConfig);
