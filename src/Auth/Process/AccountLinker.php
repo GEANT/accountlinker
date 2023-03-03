@@ -1,108 +1,110 @@
 <?php
+
+declare(strict_types=1);
+
+namespace SimpleSAML\Module\accountlinker\Auth\Process;
+
+use SimpleSAML\Assert\Assert;
+use SimpleSAML\Auth;
+use SimpleSAML\Configuration;
+use SimpleSAML\Error;
+use SimpleSAML\Logger;
+use SimpleSAML\Module;
+use SimpleSAML\Module\accountlinker\Store\SQLStore;
+
+use function array_key_exists;
+
 /**
  * Account Linking filter
  *
  * @author Christian Gijtenbeek
  */
-class sspmod_accountLinker_Auth_Process_AccountLinker extends SimpleSAML_Auth_ProcessingFilter {
+class AccountLinker extends Auth\ProcessingFilter
+{
+    /**
+     * Holds the datastore
+     */
+    protected ?SQLStore $_store = null;
 
-	/**
-	 * Holds the datastore
-	 */
-	protected $_store = null;
+    /**
+     * Prefix account_id attribute
+     */
+    private string $_accountIdPrefix;
 
-	/**
-	 * Prefix account_id attribute
-	 */
-	private $_accountIdPrefix;
+    private static Configuration $config;
 
-	public static $config;
+    /**
+     * Initialize this filter.
+     *
+     * @param array $config  Configuration information for this filter.
+     */
+    public function __construct(array $config, $reserved)
+    {
+        parent::__construct($config, $reserved);
 
-	/**
-	 * Initialize this filter.
-	 *
-	 * @param array $config  Configuration information for this filter.
-	 */
-	public function __construct($config, $reserved)
-	{
-	    parent::__construct($config, $reserved);
+        $this->_store = $this->_getStore($config);
 
-	    assert('is_array($config)');
+        $this->_accountIdPrefix = (isset($config['accountIdPrefix']))
+            ? $config['accountIdPrefix'] : 'TAL';
+    }
 
-	    $this->_store = $this->_getStore($config);
+    /**
+     * Get Account Linking Store
+     *
+     * @param array $config Configuration array
+     * @return sspmod_accountLinker_AccountLinker_Store
+     */
+    protected function _getStore(array $config): SQLStore
+    {
+        if (!array_key_exists('store', $config) || !array_key_exists("class", $config['store'])) {
+            throw new Error\Exception('No store class specified in configuration');
+        }
 
-	    $this->_accountIdPrefix = (isset($config['accountIdPrefix']))
-	    	? $config['accountIdPrefix']
-	    	: 'TAL';
-	}
+        $storeConfig = $config['store'];
+        $storeClassName = Module::resolveClass($storeConfig['class']);
+        Assert::isInstanceOf($storeClassName, SQLStore::class);
+        unset($storeConfig['class']);
 
-	public static function test($state)
-	{
-		#$config = SimpleSAML_Configuration::getConfig();
-	}
+        return new $storeClassName($storeConfig);
+    }
 
-	/**
-	 * Get Account Linking Store
-	 *
-	 * @param	array	$config		Configuration array
-	 * @return	sspmod_accountLinker_AccountLinker_Store
-	 */
-	protected function _getStore($config)
-	{
-		if (!array_key_exists('store', $config) || !array_key_exists("class", $config['store'])) {
-			throw new Exception('No store class specified in configuration');
-		}
+    /**
+     * Apply filter
+     *
+     * @param array &$request  The current request
+     */
+    public function process(array &$request): void
+    {
+        Assert::keyExists($request, 'Attributes');
 
-		$storeConfig = $config['store'];
-		$storeClassName = SimpleSAML_Module::resolveClass(
-			$storeConfig['class'],
-			'AccountLinker_Store'
-		);
-		unset($storeConfig['class']);
-		return new $storeClassName($storeConfig);
-	}
+        $this->_store->setRequest($request);
 
-	/**
-	 * Apply filter
-	 *
-	 * @param array &$request  The current request
-	 */
-	public function process(&$request)
-	{
-		assert('is_array($request)');
-		assert('array_key_exists("Attributes", $request)');
+        Logger::stats('AccountLinker: === BEGIN === ');
 
-		$this->_store->setRequest($request);
-		
-		SimpleSAML_Logger::stats('AccountLinker: === BEGIN === ');
-				
-		if ($this->_store->hasEntityId()) {
-			SimpleSAML_Logger::stats('AccountLinker: entityid '.$this->_store->getEntityId().' is already known here');
-			SimpleSAML_Logger::stats('AccountLinker: SP entityid '.$this->_store->getSpEntityId() );
-			if (!$this->_store->matchIdentifiableAttributes()) {
-				SimpleSAML_Logger::stats('AccountLinker: no account match found, adding account');
-				$this->_store->addAccount();
-				$newAccount = true;
-			}
-		} else {
-			SimpleSAML_Logger::stats('AccountLinker: entityid does not exist, adding it');
-			$this->_store->addEntityId();
-			$this->_store->addIdentifiableAttributes();
-			SimpleSAML_Logger::stats('AccountLinker: entityid does not exist, adding account');
-			$this->_store->addAccount();
-		}
+        if ($this->_store->hasEntityId()) {
+            Logger::stats('AccountLinker: entityid ' . $this->_store->getEntityId() . ' is already known here');
+            Logger::stats('AccountLinker: SP entityid ' . $this->_store->getSpEntityId() );
+            if (!$this->_store->matchIdentifiableAttributes()) {
+                Logger::stats('AccountLinker: no account match found, adding account');
+                $this->_store->addAccount();
+                $newAccount = true;
+            }
+        } else {
+            Logger::stats('AccountLinker: entityid does not exist, adding it');
+            $this->_store->addEntityId();
+            $this->_store->addIdentifiableAttributes();
+            Logger::stats('AccountLinker: entityid does not exist, adding account');
+            $this->_store->addAccount();
+        }
 
-		SimpleSAML_Logger::stats('AccountLinker: Inserting attributes');
+        Logger::stats('AccountLinker: Inserting attributes');
 
-		if ($this->_store->saveAttributes()) {
-			$request['Attributes'][$this->_accountIdPrefix.':user_id'] = array(
-				$this->_store->saveSpEntityId()
-			);
-			
-			SimpleSAML_Logger::stats('AccountLinker: === END === ');
-		}
+        if ($this->_store->saveAttributes()) {
+            $request['Attributes'][$this->_accountIdPrefix . ':user_id'] = [
+                $this->_store->saveSpEntityId()
+            ];
 
-	}
+            Logger::stats('AccountLinker: === END ===');
+        }
+    }
 }
-
-?>

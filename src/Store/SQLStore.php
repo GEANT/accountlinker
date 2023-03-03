@@ -1,73 +1,91 @@
 <?php
+
+declare(strict_types=1);
+
+namespace SimpleSAML\Module\accountlinker\Store;
+
+use Exception;
+use PDO;
+use PDOException;
+use SimpleSAML\Configuration;
+use SimpleSAML\Error;
+use SimpleSAML\Logger;
+use SimpleSAML\Utils;
+
+use function array_diff;
+use function array_key_exists;
+use function array_keys;
+use function http_build_query;
+use function rtrim;
+
 /**
  * Account Linking SQL Store
  *
  * @author Christian Gijtenbeek
  */
-class sspmod_accountLinker_AccountLinker_Store_SQLStore {
-
+class SQLStore
+{
     /**
      * DSN config.
      */
-    private $_accountLinkerConfig;
-
+    private string $_accountLinkerConfig;
 
     /**
      * DSN for the database.
      */
-    private $_dsn;
+    private string $_dsn;
 
     /**
      * Username for the database.
      */
-    private $_username;
+    private string $_username;
 
     /**
      * Password for the database;
      */
-    private $_password;
+    private string $_password;
 
     /**
      * Database handle.
      *
      * This variable can't be serialized.
      */
-    private $_store;
+    private PDO $_store;
 
     /**
      * Metadata entityId
      */
-    private $_entityId;
+    private string $_entityId;
 
     /**
      * Metadata SpEntityId
      */
-    private $_spEntityId = null;
+    private ?string $_spEntityId = null;
 
     /**
      * Metadata attributes
      */
-    private $_attributes;
+    private array $_attributes;
 
     /**
      * ErrorHandling Service url
      */
-    private $_ehsURL;
+    private string $_ehsURL;
 
     /**
      * Entityid_id from entityid table
      */
-    private $_entityidId = null;
+    private ?int $_entityidId = null;
 
     /**
      * Account_id from attributes table
      */
-    private $_accountId = null;
+    private ?int $_accountId = null;
 
     /**
      * Is this a new account?
      */
-    private $_newAccount = false;
+    private bool $_newAccount = false;
 
 
     /**
@@ -75,13 +93,13 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
      *
      * @param array $config  Configuration information for this collector.
      */
-    public function __construct($config)
+    public function __construct(array $config)
     {
-        $this->_accountLinkerConfig = SimpleSAML_Configuration::getConfig('module_accountlinker.php');
-        foreach (array('dsn', 'username', 'password') as $param) {
-            $config[$param] = $this->_accountLinkerConfig->getString($param, NULL);
-            if ($config[$param] === NULL) {
-                throw new Exception('AccountLinking - Missing required option \'' . $param . '\'.');
+        $this->_accountLinkerConfig = Configuration::getConfig('module_accountlinker.php');
+        foreach (['dsn', 'username', 'password'] as $param) {
+            $config[$param] = $this->_accountLinkerConfig->getString($param, null);
+            if ($config[$param] === null) {
+                throw new Error\Exception('AccountLinking - Missing required option \'' . $param . '\'.');
             }
         }
 
@@ -93,12 +111,11 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
 
     /**
      * Set IdP attributes for the store
-     *
      */
-    public function setRequest(array $request)
+    public function setRequest(array $request): void
     {
         if (!array_key_exists('saml:sp:IdP', $request)) {
-            throw new Exception('AccountLinking - Missing required attribute saml:sp:IdP');
+            throw new Error\Exception('AccountLinking - Missing required attribute saml:sp:IdP');
         }
 
         $this->_entityId = $request['saml:sp:IdP'];
@@ -109,13 +126,14 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
     /**
      * Lazy load entityid_id
      *
-     * @return    integer        entityid_id
+     * @return integer entityid_id
      */
-    protected function _getEntityidId()
+    protected function _getEntityidId(): int
     {
         if ($this->_entityidId) {
             return $this->_entityidId;
         }
+
         $this->_entityidId = $this->hasEntityId();
         return $this->_entityidId;
     }
@@ -123,7 +141,7 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
     /**
      * Check if entity_id exists
      *
-     * @return value of entity_id or false
+     * @return string|false value of entity_id or false
      */
     public function hasEntityId()
     {
@@ -135,12 +153,12 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
         return $this->_entityidId;
     }
 
-    public function getEntityId()
+    public function getEntityId(): string
     {
         return $this->_entityId;
     }
 
-    public function getSpEntityId()
+    public function getSpEntityId(): string
     {
         return $this->_spEntityId;
     }
@@ -148,9 +166,9 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
     /**
      * Insert entity_id
      *
-     * @return value of entity_id
+     * @return int value of entity_id
      */
-    public function addEntityId()
+    public function addEntityId(): int
     {
         $dbh = $this->_getStore();
         $stmt = $dbh->prepare("INSERT INTO entityids (name, type) VALUES (:entity_id,:type)");
@@ -164,9 +182,9 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
     /**
      * Getter for account_id
      *
-     * @return    integer        account_id
+     * @return integer account_id
      */
-    protected function _getAccountId()
+    protected function _getAccountId(): int
     {
         return $this->_accountId;
     }
@@ -174,7 +192,7 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
     /**
      * Try to match Identifiable attributes
      *
-     * @return    mixed        account_id or false
+     * @return int|false account_id or false
      */
     public function matchIdentifiableAttributes()
     {
@@ -184,9 +202,7 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
         $stmt = $dbh->prepare("SELECT ida.attribute_id, ap.name, ap.singlevalue FROM idattributes ida
             LEFT JOIN attributeproperties ap ON (ida.attribute_id = ap.attributeproperty_id)
             WHERE entity_id=:entity_id ORDER BY ida.aorder");
-        $stmt->execute(
-            array(':entity_id' => $this->_getEntityidId())
-        );
+        $stmt->execute([':entity_id' => $this->_getEntityidId()]);
 
         // @note This only deals with single attribute value
         // @todo this exception must only show if none of the identifiable attributes are in the metadata
@@ -196,35 +212,35 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
         // @todo Check if IDP gives identifiable attributes AT ALL (should be at least one!). Otherwise throw error back to IDP
         $count = 0;
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            SimpleSAML_Logger::stats('AccountLinker: Checking for attribute \''.$row['name'].'\'');
+            Logger::stats('AccountLinker: Checking for attribute \'' . $row['name'] . '\'');
             if (isset($this->_attributes[$row['name']])) {
                 $count++;
                 //$stmt2 = $dbh->prepare("SELECT a.account_id, a.attributeproperty_id
                 //FROM attributes a WHERE a.value=:attribute_value AND a.attributeproperty_id=:attribute_id");
                 $stmt2 = $dbh->prepare("SELECT at.account_id, at.attributeproperty_id FROM attributes at LEFT JOIN accounts ac ON (at.account_id = ac.account_id) WHERE at.value=:attribute_value AND at.attributeproperty_id=:attribute_id AND ac.entityid_id=:entityid_id");
-                $stmt2->execute(array(
+                $stmt2->execute([
                     ':attribute_value' => $this->_attributes[$row['name']][0],
                     ':attribute_id' => $row['attribute_id'],
                     ':entityid_id' => $this->_getEntityidId()
-                ));
+                ]);
                 $return = $stmt2->fetch(PDO::FETCH_NUM);
 
                 if (!empty($return)) {
                     $stmt3 = $dbh->prepare("SELECT name FROM attributeproperties WHERE attributeproperty_id=:attribute_id");
-                    $stmt3->execute(array(':attribute_id' => $return[1]));
+                    $stmt3->execute([':attribute_id' => $return[1]]);
                     $attribute_name = $stmt3->fetchColumn();
-                    SimpleSAML_Logger::stats('AccountLinker: Found match on attribute \''.$attribute_name .'\' for account id '. $return[0]);
+                    Logger::stats('AccountLinker: Found match on attribute \'' . $attribute_name . '\' for account id ' . $return[0]);
                     $this->_accountId = $return[0];
                     return $this->_accountId;
                 }
             }
-            SimpleSAML_Logger::stats('AccountLinker: Attribute \''.$row['name'].'\' not found in metadata/datastore');
+            Logger::stats('AccountLinker: Attribute \'' . $row['name'] . '\' not found in metadata/datastore');
         }
 
         if ($count === 0) {
             $error = 'Could not find any of the attributes to determine who you are';
-            SimpleSAML_Logger::stats('AccountLinker: EXCEPTION '.$error);
-            #throw new Exception('AccountLinking '.$error );
+            Logger::stats('AccountLinker: EXCEPTION ' . $error);
+            #throw new Exception('AccountLinking ' . $error );
             $this->_handleException();
         }
 
@@ -239,14 +255,14 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
      *
      * @todo the RETURNING clause only works in PGSQL - add driver testing to add driver specific code
      */
-    public function addAccount()
+    public function addAccount(): void
     {
         $dbh = $this->_getStore();
         $stmt = $dbh->prepare("INSERT INTO accounts (account_id, user_id, entityid_id, priority)
             SELECT max(account_id)+1, max(account_id)+1, :entity_id, 1 FROM accounts RETURNING account_id");
-        $stmt->execute(array(
+        $stmt->execute([
             ':entity_id' => $this->_getEntityidId()
-        ));
+        ]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         $this->_accountId = $result['account_id'];
         $this->_newAccount = true;
@@ -264,10 +280,10 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
      * @note the approach for inserting attribute properties could be prone to race conditions.
      *
      */
-    public function saveAttributes()
+    public function saveAttributes(): bool
     {
         if (!$this->_getAccountId()) {
-            throw new Exception("Can't save attributes, no account_id found");
+            throw new Error\Exception("Can't save attributes, no account_id found");
         }
 
         // init dbh
@@ -276,7 +292,7 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
 
         // define variables
         $metadataAttributeString = null;
-        $insertValues = $updateValues = array();
+        $insertValues = $updateValues = [];
         $metadataAttributes = $this->_attributes;
 
         // get stored attributes for this account
@@ -284,18 +300,18 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
             FROM attributes a LEFT JOIN attributeproperties ap ON
             (ap.attributeproperty_id = a.attributeproperty_id)
             WHERE a.account_id=:account_id");
-        $stmt->execute(array(
+        $stmt->execute([
             ':account_id' => $this->_getAccountId()
-        ));
+        ]);
         $storedAttributes = $stmt->fetchAll(PDO::FETCH_COLUMN|PDO::FETCH_GROUP);
 
         // Store Attribute Properties
         // get stored attributes that are also metadata attributes
         foreach ($metadataAttributes as $metadataAttribute => $value) {
-            $metadataAttributeString .= $dbh->quote($metadataAttribute).",";
+            $metadataAttributeString .= $dbh->quote($metadataAttribute) . ",";
         }
         $metadataAttributeString = rtrim($metadataAttributeString, ',');
-        $stmt = $dbh->prepare("SELECT name FROM attributeproperties WHERE name IN (".$metadataAttributeString.")");
+        $stmt = $dbh->prepare("SELECT name FROM attributeproperties WHERE name IN (" . $metadataAttributeString . ")");
         $stmt->execute();
         $return = $stmt->fetchAll(PDO::FETCH_COLUMN);
         $diff = array_diff(array_keys($metadataAttributes), $return);
@@ -303,17 +319,17 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
         if (!empty($diff)) {
             $stmt = $dbh->prepare("INSERT INTO attributeproperties (name) VALUES (:attribute)");
             foreach ($diff as $key => $val) {
-                $stmt->execute(array(':attribute' => $val));
+                $stmt->execute([':attribute' => $val]);
             }
         }
 
         // Map attribute property Ids
         // get stored attributes that are also metadata attributes (including newly inserted ones)
-        $stmt = $dbh->prepare("SELECT attributeproperty_id, name FROM attributeproperties WHERE name IN (".$metadataAttributeString.")");
+        $stmt = $dbh->prepare("SELECT attributeproperty_id, name FROM attributeproperties WHERE name IN (" . $metadataAttributeString . ")");
         $stmt->execute();
 
         // used for debugging only
-        $attributeMapping = array();
+        $attributeMapping = [];
 
         while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
             $insertValues[$row[0]] = $metadataAttributes[$row[1]];
@@ -324,26 +340,26 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
             $dbh->beginTransaction();
             // delete attributes
             $stmt = $dbh->prepare("DELETE FROM attributes WHERE account_id=:account_id");
-            $stmt->execute(array(
+            $stmt->execute([
                 ':account_id' => $this->_getAccountId()
-            ));
+            ]);
 
             // insert attributes
             $query = "INSERT INTO attributes (account_id, attributeproperty_id, value) VALUES ";
             $accountId = $this->_getAccountId();
             foreach ($insertValues as $attributePropertyId => $value) {
                 if (count($value) === 1) {
-                    SimpleSAML_Logger::stats('AccountLinker: Inserting '.$attributeMapping[$attributePropertyId].' => \''.$value[0] . '\'');
-                    $query .= "(".$accountId.","
-                        .$attributePropertyId.","
-                        .$dbh->quote($value[0])."),";
+                    Logger::stats('AccountLinker: Inserting ' . $attributeMapping[$attributePropertyId] . ' => \'' . $value[0] . '\'');
+                    $query .= "(" . $accountId . ","
+                        . $attributePropertyId . ","
+                        . $dbh->quote($value[0]) . "),";
                 } else {
                     // multivalue attribute
                     foreach ($value as $val) {
-                        SimpleSAML_Logger::stats('AccountLinker: Inserting '.$attributeMapping[$attributePropertyId].' => \''.$val.'\'');
-                        $query .= "(".$accountId.","
-                            .$attributePropertyId.","
-                            .$dbh->quote($val)."),";
+                        Logger::stats('AccountLinker: Inserting ' . $attributeMapping[$attributePropertyId] . ' => \'' . $val . '\'');
+                        $query .= "(" . $accountId . ","
+                            . $attributePropertyId . ","
+                            . $dbh->quote($val) . "),";
                     }
                 }
             }
@@ -355,7 +371,7 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
             $dbh->commit();
         } catch (Exception $e) {
             $dbh->rollBack();
-            throw new Exception('Failed to insert attributes');
+            throw new Error\Exception('Failed to insert attributes');
         }
 
         return true;
@@ -364,12 +380,12 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
     /**
      * Getter for user_id
      *
-     * @return    integer        user_id
+     * @return integer user_id
      */
-    public function getUserId()
+    public function getUserId(): int
     {
         if (!$this->_getAccountId()) {
-            throw new Exception('Can\'t get user_id, no account_id found');
+            throw new Error\Exception('Can\'t get user_id, no account_id found');
         }
         $dbh = $this->_getStore();
         $stmt = $dbh->prepare("SELECT user_id FROM accounts WHERE account_id=:account_id");
@@ -383,9 +399,9 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
     /**
      * Store sp entityid
      *
-     * @return    integer        user_id
+     * @return integer user_id
      */
-    public function saveSpEntityId()
+    public function saveSpEntityId(): int
     {
         $userId = $this->getUserId();
         $dbh = $this->_getStore();
@@ -412,7 +428,7 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
             ':user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? ''
         ));
 
-        SimpleSAML_Logger::stats('AccountLinker: Returning user_id '.$userId);
+        Logger::stats('AccountLinker: Returning user_id ' . $userId);
         return $userId;
     }
 
@@ -420,45 +436,45 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
 
     /**
      * Set default values for identifiable attributes
-     *
      */
-    public function addIdentifiableAttributes()
+    public function addIdentifiableAttributes(): self
     {
-        SimpleSAML_Logger::stats('AccountLinker: adding default id attributes for entityid_id: '. $this->_getEntityidId());
+        Logger::stats('AccountLinker: adding default id attributes for entityid_id: ' . $this->_getEntityidId());
         $dbh = $this->_getStore();
         $stmt = $dbh->prepare("INSERT INTO idattributes (attribute_id, entity_id, aorder) VALUES (:attribute_id,:entity_id, :aorder)");
-        $stmt->execute(array(
+        $stmt->execute([
             ':attribute_id' => 1,
             ':entity_id' => $this->_getEntityidId(),
             ':aorder' => 1
-        ));
-        $stmt->execute(array(
+        ]);
+        $stmt->execute([
             ':attribute_id' => 2,
             ':entity_id' => $this->_getEntityidId(),
             ':aorder' => 2
-        ));
-        $stmt->execute(array(
+        ]);
+        $stmt->execute([
             ':attribute_id' => 81,
             ':entity_id' => $this->_getEntityidId(),
             ':aorder' => 3
-        ));
-        $stmt->execute(array(
+        ]);
+        $stmt->execute([
             ':attribute_id' => 259,
             ':entity_id' => $this->_getEntityidId(),
             ':aorder' => 4
-        ));
+        ]);
         return $this;
     }
 
-    private function _handleException()
+    private function _handleException(): void
     {
         $data = array(
             'sp_entityID' => $this->_spEntityId,
             'idp_entityID' => $this->getEntityId()
         );
-        $queryString = $this->_ehsURL.'?'.http_build_query($data);
-        SimpleSAML_Logger::stats('TAL EHS:'.$queryString);
-        SimpleSAML_Utilities::redirect($queryString);
+        $queryString = $this->_ehsURL . '?' . http_build_query($data);
+        Logger::stats('TAL EHS:'.$queryString);
+        $httpUtils = new Utils\HTTP();
+        $httpUtils->redirect($queryString);
     }
 
 
@@ -472,13 +488,12 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
         if (null !== $this->_store) {
             return $this->_store;
         }
+
         try {
             $this->_store = new PDO($this->_dsn, $this->_username, $this->_password);
         } catch (PDOException $e) {
-            throw new Exception('could not connect to database');
+            throw new Error\Exception('could not connect to database');
         }
         return $this->_store;
     }
 }
-
-?>

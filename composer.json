@@ -1,0 +1,42 @@
+{
+    "name": "geant/simplesamlphp-module-accountlinker",
+    "description": "A module for linking accounts",
+    "type": "simplesamlphp-module",
+    "keywords": ["simplesamlphp", "accountlinker"],
+    "license": "LGPL-2.1-or-later",
+    "config": {
+        "preferred-install": {
+            "simplesamlphp/simplesamlphp": "source",
+            "*": "dist"
+        },
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true,
+            "simplesamlphp/composer-module-installer": true
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "SimpleSAML\\Module\\accountlinker\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "SimpleSAML\\Test\\Utils\\": "vendor/simplesamlphp/simplesamlphp/tests/Utils"
+        }
+    },
+    "require": {
+        "php": ">=7.4 || ^8.0",
+        "ext-pdo": "*",
+
+        "simplesamlphp/assert": "~0.8",
+        "simplesamlphp/composer-module-installer": "^1.3.2",
+        "simplesamlphp/simplesamlphp": "^2.0.0"
+    },
+    "require-dev": {
+        "simplesamlphp/simplesamlphp-test-framework": "^1.2.1"
+    },
+    "support": {
+        "issues": "https://github.com/geant/simplesamlphp-module-accountlinker/issues",
+        "source": "https://github.com/geant/simplesamlphp-module-accountlinker"
+    }
+}
