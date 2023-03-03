@@ -62,7 +62,7 @@ class AccountLinker extends Auth\ProcessingFilter
         }
 
         $storeConfig = $config['store'];
-        $storeClassName = Module::resolveClass($storeConfig['class'], 'SQLStore');
+        $storeClassName = Module::resolveClass($storeConfig['class'], 'Store');
         unset($storeConfig['class']);
 
         return new $storeClassName($storeConfig);
