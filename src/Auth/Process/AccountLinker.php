@@ -24,12 +24,12 @@ class AccountLinker extends Auth\ProcessingFilter
     /**
      * Holds the datastore
      */
-    protected ?SQLStore $_store = null;
+    protected ?SQLStore $store = null;
 
     /**
      * Prefix account_id attribute
      */
-    private string $_accountIdPrefix;
+    private string $accountIdPrefix;
 
     private static Configuration $config;
 
@@ -42,9 +42,9 @@ class AccountLinker extends Auth\ProcessingFilter
     {
         parent::__construct($config, $reserved);
 
-        $this->_store = $this->_getStore($config);
+        $this->_store = $this->getStore($config);
 
-        $this->_accountIdPrefix = (isset($config['accountIdPrefix']))
+        $this->accountIdPrefix = (isset($config['accountIdPrefix']))
             ? $config['accountIdPrefix'] : 'TAL';
     }
 
@@ -52,9 +52,9 @@ class AccountLinker extends Auth\ProcessingFilter
      * Get Account Linking Store
      *
      * @param array $config Configuration array
-     * @return sspmod_accountLinker_AccountLinker_Store
+     * @return \SimpleSAML\Module\accountlinker\Store\SQLStore
      */
-    protected function _getStore(array $config): SQLStore
+    protected function getStore(array $config): SQLStore
     {
         if (!array_key_exists('store', $config) || !array_key_exists("class", $config['store'])) {
             throw new Error\Exception('No store class specified in configuration');
@@ -77,31 +77,31 @@ class AccountLinker extends Auth\ProcessingFilter
     {
         Assert::keyExists($request, 'Attributes');
 
-        $this->_store->setRequest($request);
+        $this->store->setRequest($request);
 
         Logger::stats('AccountLinker: === BEGIN === ');
 
-        if ($this->_store->hasEntityId()) {
-            Logger::stats('AccountLinker: entityid ' . $this->_store->getEntityId() . ' is already known here');
-            Logger::stats('AccountLinker: SP entityid ' . $this->_store->getSpEntityId() );
-            if (!$this->_store->matchIdentifiableAttributes()) {
+        if ($this->store->hasEntityId()) {
+            Logger::stats('AccountLinker: entityid ' . $this->store->getEntityId() . ' is already known here');
+            Logger::stats('AccountLinker: SP entityid ' . $this->store->getSpEntityId());
+            if (!$this->store->matchIdentifiableAttributes()) {
                 Logger::stats('AccountLinker: no account match found, adding account');
-                $this->_store->addAccount();
+                $this->store->addAccount();
                 $newAccount = true;
             }
         } else {
             Logger::stats('AccountLinker: entityid does not exist, adding it');
-            $this->_store->addEntityId();
-            $this->_store->addIdentifiableAttributes();
+            $this->store->addEntityId();
+            $this->store->addIdentifiableAttributes();
             Logger::stats('AccountLinker: entityid does not exist, adding account');
-            $this->_store->addAccount();
+            $this->store->addAccount();
         }
 
         Logger::stats('AccountLinker: Inserting attributes');
 
-        if ($this->_store->saveAttributes()) {
-            $request['Attributes'][$this->_accountIdPrefix . ':user_id'] = [
-                $this->_store->saveSpEntityId()
+        if ($this->store->saveAttributes()) {
+            $request['Attributes'][$this->accountIdPrefix . ':user_id'] = [
+                $this->store->saveSpEntityId()
             ];
 
             Logger::stats('AccountLinker: === END ===');

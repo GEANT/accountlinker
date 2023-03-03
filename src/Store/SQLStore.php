@@ -17,6 +17,7 @@ use function array_key_exists;
 use function array_keys;
 use function http_build_query;
 use function rtrim;
+use function sprintf;
 
 /**
  * Account Linking SQL Store
@@ -28,64 +29,64 @@ class SQLStore
     /**
      * DSN config.
      */
-    private string $_accountLinkerConfig;
+    private string $accountLinkerConfig;
 
     /**
      * DSN for the database.
      */
-    private string $_dsn;
+    private string $dsn;
 
     /**
      * Username for the database.
      */
-    private string $_username;
+    private string $username;
 
     /**
      * Password for the database;
      */
-    private string $_password;
+    private string $password;
 
     /**
      * Database handle.
      *
      * This variable can't be serialized.
      */
-    private PDO $_store;
+    private PDO $store;
 
     /**
      * Metadata entityId
      */
-    private string $_entityId;
+    private string $entityId;
 
     /**
      * Metadata SpEntityId
      */
-    private ?string $_spEntityId = null;
+    private ?string $spEntityId = null;
 
     /**
      * Metadata attributes
      */
-    private array $_attributes;
+    private array $attributes;
 
     /**
      * ErrorHandling Service url
      */
-    private string $_ehsURL;
+    private string $ehsURL;
 
     /**
      * Entityid_id from entityid table
      */
-    private ?int $_entityidId = null;
+    private ?int $entityidId = null;
 
     /**
      * Account_id from attributes table
      */
-    private ?int $_accountId = null;
+    private ?int $accountId = null;
 
     /**
      * Is this a new account?
      */
-    private bool $_newAccount = false;
+    private bool $newAccount = false;
 
 
     /**
@@ -95,18 +96,18 @@ class SQLStore
      */
     public function __construct(array $config)
     {
-        $this->_accountLinkerConfig = Configuration::getConfig('module_accountlinker.php');
+        $this->accountLinkerConfig = Configuration::getConfig('module_accountlinker.php');
         foreach (['dsn', 'username', 'password'] as $param) {
-            $config[$param] = $this->_accountLinkerConfig->getString($param, null);
+            $config[$param] = $this->accountLinkerConfig->getString($param, null);
             if ($config[$param] === null) {
                 throw new Error\Exception('AccountLinking - Missing required option \'' . $param . '\'.');
             }
         }
 
-        $this->_dsn = $config['dsn'];
-        $this->_ehsURL = "https://ds.incommon.org/FEH/sp-error.html";
-        $this->_username = $config['username'];
-        $this->_password = $config['password'];
+        $this->dsn = $config['dsn'];
+        $this->ehsURL = "https://ds.incommon.org/FEH/sp-error.html";
+        $this->username = $config['username'];
+        $this->password = $config['password'];
     }
 
     /**
@@ -118,9 +119,9 @@ class SQLStore
             throw new Error\Exception('AccountLinking - Missing required attribute saml:sp:IdP');
         }
 
-        $this->_entityId = $request['saml:sp:IdP'];
-        $this->_spEntityId = $request['SPMetadata']['entityid'];
-        $this->_attributes = $request['Attributes'];
+        $this->entityId = $request['saml:sp:IdP'];
+        $this->spEntityId = $request['SPMetadata']['entityid'];
+        $this->attributes = $request['Attributes'];
     }
 
     /**
@@ -128,14 +129,14 @@ class SQLStore
      *
      * @return integer entityid_id
      */
-    protected function _getEntityidId(): int
+    protected function getEntityidId(): int
     {
-        if ($this->_entityidId) {
-            return $this->_entityidId;
+        if ($this->entityidId) {
+            return $this->entityidId;
         }
 
-        $this->_entityidId = $this->hasEntityId();
-        return $this->_entityidId;
+        $this->entityidId = $this->hasEntityId();
+        return $this->entityidId;
     }
 
     /**
@@ -145,22 +146,22 @@ class SQLStore
      */
     public function hasEntityId()
     {
-        $dbh = $this->_getStore();
+        $dbh = $this->getStore();
         $stmt = $dbh->prepare("SELECT entityid_id FROM entityids WHERE name=:entity_id");
-        $stmt->bindParam(':entity_id', $this->_entityId, PDO::PARAM_INT);
+        $stmt->bindParam(':entity_id', $this->entityId, PDO::PARAM_INT);
         $stmt->execute();
-        $this->_entityidId = $stmt->fetchColumn();
-        return $this->_entityidId;
+        $this->entityidId = $stmt->fetchColumn();
+        return $this->entityidId;
     }
 
     public function getEntityId(): string
     {
-        return $this->_entityId;
+        return $this->entityId;
     }
 
     public function getSpEntityId(): string
     {
-        return $this->_spEntityId;
+        return $this->spEntityId;
     }
 
     /**
@@ -170,13 +171,13 @@ class SQLStore
      */
     public function addEntityId(): int
     {
-        $dbh = $this->_getStore();
+        $dbh = $this->getStore();
         $stmt = $dbh->prepare("INSERT INTO entityids (name, type) VALUES (:entity_id,:type)");
-        $stmt->execute(array(
-            ':entity_id' => $this->_entityId,
+        $stmt->execute([
+            ':entity_id' => $this->entityId,
             ':type' => 'idp'
-        ));
-        return $this->_getEntityidId();
+        ]);
+        return $this->getEntityidId();
     }
 
     /**
@@ -184,9 +185,9 @@ class SQLStore
      *
      * @return integer account_id
      */
-    protected function _getAccountId(): int
+    protected function getAccountId(): int
     {
-        return $this->_accountId;
+        return $this->accountId;
     }
 
     /**
@@ -196,42 +197,51 @@ class SQLStore
      */
     public function matchIdentifiableAttributes()
     {
-        $dbh = $this->_getStore();
+        $dbh = $this->getStore();
 
         // get identifiable attributes for this entity
         $stmt = $dbh->prepare("SELECT ida.attribute_id, ap.name, ap.singlevalue FROM idattributes ida
             LEFT JOIN attributeproperties ap ON (ida.attribute_id = ap.attributeproperty_id)
             WHERE entity_id=:entity_id ORDER BY ida.aorder");
-        $stmt->execute([':entity_id' => $this->_getEntityidId()]);
+        $stmt->execute([':entity_id' => $this->getEntityidId()]);
 
         // @note This only deals with single attribute value
         // @todo this exception must only show if none of the identifiable attributes are in the metadata
         // throw new Exception('AccountLinking - Missing required identifiable attribute '.$row['name']);
         //only deal with single values (eg, take first element of array)
 
-        // @todo Check if IDP gives identifiable attributes AT ALL (should be at least one!). Otherwise throw error back to IDP
+        // @todo Check if IDP gives identifiable attributes AT ALL (should be at least one!).
+        // Otherwise throw error back to IDP
         $count = 0;
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             Logger::stats('AccountLinker: Checking for attribute \'' . $row['name'] . '\'');
-            if (isset($this->_attributes[$row['name']])) {
+            if (isset($this->attributes[$row['name']])) {
                 $count++;
                 //$stmt2 = $dbh->prepare("SELECT a.account_id, a.attributeproperty_id
                 //FROM attributes a WHERE a.value=:attribute_value AND a.attributeproperty_id=:attribute_id");
-                $stmt2 = $dbh->prepare("SELECT at.account_id, at.attributeproperty_id FROM attributes at LEFT JOIN accounts ac ON (at.account_id = ac.account_id) WHERE at.value=:attribute_value AND at.attributeproperty_id=:attribute_id AND ac.entityid_id=:entityid_id");
+                $stmt2 = $dbh->prepare("SELECT at.account_id, at.attributeproperty_id FROM attributes
+                    at LEFT JOIN accounts ac ON (at.account_id = ac.account_id) WHERE at.value=:attribute_value
+                    AND at.attributeproperty_id=:attribute_id AND ac.entityid_id=:entityid_id");
                 $stmt2->execute([
-                    ':attribute_value' => $this->_attributes[$row['name']][0],
+                    ':attribute_value' => $this->attributes[$row['name']][0],
                     ':attribute_id' => $row['attribute_id'],
-                    ':entityid_id' => $this->_getEntityidId()
+                    ':entityid_id' => $this->getEntityidId()
                 ]);
                 $return = $stmt2->fetch(PDO::FETCH_NUM);
 
                 if (!empty($return)) {
-                    $stmt3 = $dbh->prepare("SELECT name FROM attributeproperties WHERE attributeproperty_id=:attribute_id");
+                    $stmt3 = $dbh->prepare(
+                        "SELECT name FROM attributeproperties WHERE attributeproperty_id=:attribute_id"
+                    );
                     $stmt3->execute([':attribute_id' => $return[1]]);
                     $attribute_name = $stmt3->fetchColumn();
-                    Logger::stats('AccountLinker: Found match on attribute \'' . $attribute_name . '\' for account id ' . $return[0]);
-                    $this->_accountId = $return[0];
-                    return $this->_accountId;
+                    Logger::stats(sprintf(
+                        'AccountLinker: Found match on attribute \'%s\' for account id %s',
+                        $attribute_name,
+                        $return[0],
+                    ));
+                    $this->accountId = $return[0];
+                    return $this->accountId;
                 }
             }
             Logger::stats('AccountLinker: Attribute \'' . $row['name'] . '\' not found in metadata/datastore');
@@ -241,7 +251,7 @@ class SQLStore
             $error = 'Could not find any of the attributes to determine who you are';
             Logger::stats('AccountLinker: EXCEPTION ' . $error);
             #throw new Exception('AccountLinking ' . $error );
-            $this->_handleException();
+            $this->handleException();
         }
 
         return false;
@@ -257,15 +267,15 @@ class SQLStore
      */
     public function addAccount(): void
     {
-        $dbh = $this->_getStore();
+        $dbh = $this->getStore();
         $stmt = $dbh->prepare("INSERT INTO accounts (account_id, user_id, entityid_id, priority)
             SELECT max(account_id)+1, max(account_id)+1, :entity_id, 1 FROM accounts RETURNING account_id");
         $stmt->execute([
-            ':entity_id' => $this->_getEntityidId()
+            ':entity_id' => $this->getEntityidId()
         ]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        $this->_accountId = $result['account_id'];
-        $this->_newAccount = true;
+        $this->accountId = $result['account_id'];
+        $this->newAccount = true;
     }
 
     /**
@@ -287,13 +297,13 @@ class SQLStore
         }
 
         // init dbh
-        $dbh = $this->_getStore();
+        $dbh = $this->getStore();
         $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         // define variables
         $metadataAttributeString = null;
         $insertValues = $updateValues = [];
-        $metadataAttributes = $this->_attributes;
+        $metadataAttributes = $this->attributes;
 
         // get stored attributes for this account
         $stmt = $dbh->prepare("SELECT ap.name, a.value
@@ -301,9 +311,9 @@ class SQLStore
             (ap.attributeproperty_id = a.attributeproperty_id)
             WHERE a.account_id=:account_id");
         $stmt->execute([
-            ':account_id' => $this->_getAccountId()
+            ':account_id' => $this->getAccountId()
         ]);
-        $storedAttributes = $stmt->fetchAll(PDO::FETCH_COLUMN|PDO::FETCH_GROUP);
+        $storedAttributes = $stmt->fetchAll(PDO::FETCH_COLUMN | PDO::FETCH_GROUP);
 
         // Store Attribute Properties
         // get stored attributes that are also metadata attributes
@@ -325,7 +335,10 @@ class SQLStore
 
         // Map attribute property Ids
         // get stored attributes that are also metadata attributes (including newly inserted ones)
-        $stmt = $dbh->prepare("SELECT attributeproperty_id, name FROM attributeproperties WHERE name IN (" . $metadataAttributeString . ")");
+        $stmt = $dbh->prepare(sprintf(
+            "SELECT attributeproperty_id, name FROM attributeproperties WHERE name IN (%s)",
+            $metadataAttributeString,
+        ));
         $stmt->execute();
 
         // used for debugging only
@@ -341,22 +354,30 @@ class SQLStore
             // delete attributes
             $stmt = $dbh->prepare("DELETE FROM attributes WHERE account_id=:account_id");
             $stmt->execute([
-                ':account_id' => $this->_getAccountId()
+                ':account_id' => $this->getAccountId()
             ]);
 
             // insert attributes
             $query = "INSERT INTO attributes (account_id, attributeproperty_id, value) VALUES ";
-            $accountId = $this->_getAccountId();
+            $accountId = $this->getAccountId();
             foreach ($insertValues as $attributePropertyId => $value) {
                 if (count($value) === 1) {
-                    Logger::stats('AccountLinker: Inserting ' . $attributeMapping[$attributePropertyId] . ' => \'' . $value[0] . '\'');
+                    Logger::stats(sprintf(
+                        'AccountLinker: Inserting %s => \'%s\'',
+                        $attributeMapping[$attributePropertyId],
+                        $value[0],
+                    ));
                     $query .= "(" . $accountId . ","
                         . $attributePropertyId . ","
                         . $dbh->quote($value[0]) . "),";
                 } else {
                     // multivalue attribute
                     foreach ($value as $val) {
-                        Logger::stats('AccountLinker: Inserting ' . $attributeMapping[$attributePropertyId] . ' => \'' . $val . '\'');
+                        Logger::stats(sprintf(
+                            'AccountLinker: Inserting %s => \'%s\'',
+                            $attributeMapping[$attributePropertyId],
+                            $val,
+                        ));
                         $query .= "(" . $accountId . ","
                             . $attributePropertyId . ","
                             . $dbh->quote($val) . "),";
@@ -384,14 +405,14 @@ class SQLStore
      */
     public function getUserId(): int
     {
-        if (!$this->_getAccountId()) {
+        if (!$this->getAccountId()) {
             throw new Error\Exception('Can\'t get user_id, no account_id found');
         }
-        $dbh = $this->_getStore();
+        $dbh = $this->getStore();
         $stmt = $dbh->prepare("SELECT user_id FROM accounts WHERE account_id=:account_id");
-        $stmt->execute(array(
-            ':account_id' => $this->_getAccountId()
-        ));
+        $stmt->execute([
+            ':account_id' => $this->getAccountId()
+        ]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result['user_id'];
     }
@@ -404,7 +425,7 @@ class SQLStore
     public function saveSpEntityId(): int
     {
         $userId = $this->getUserId();
-        $dbh = $this->_getStore();
+        $dbh = $this->getStore();
         $stmt = $dbh->prepare("INSERT INTO users_spentityids (
             user_id,
             account_id,
@@ -422,8 +443,8 @@ class SQLStore
         $stmt->execute(array(
             ':user_id' => $userId,
             ':idp_entityid' => $this->getEntityId(),
-            ':account_id' => $this->_getAccountId(),
-            ':spentityid' => $this->_spEntityId,
+            ':account_id' => $this->getAccountId(),
+            ':spentityid' => $this->spEntityId,
             ':ip_addr' => $_SERVER['REMOTE_ADDR'] ?? '::1',
             ':user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? ''
         ));
@@ -439,40 +460,42 @@ class SQLStore
      */
     public function addIdentifiableAttributes(): self
     {
-        Logger::stats('AccountLinker: adding default id attributes for entityid_id: ' . $this->_getEntityidId());
-        $dbh = $this->_getStore();
-        $stmt = $dbh->prepare("INSERT INTO idattributes (attribute_id, entity_id, aorder) VALUES (:attribute_id,:entity_id, :aorder)");
+        Logger::stats('AccountLinker: adding default id attributes for entityid_id: ' . $this->getEntityidId());
+        $dbh = $this->getStore();
+        $stmt = $dbh->prepare(
+            "INSERT INTO idattributes (attribute_id, entity_id, aorder) VALUES (:attribute_id,:entity_id, :aorder)"
+        );
         $stmt->execute([
             ':attribute_id' => 1,
-            ':entity_id' => $this->_getEntityidId(),
+            ':entity_id' => $this->getEntityidId(),
             ':aorder' => 1
         ]);
         $stmt->execute([
             ':attribute_id' => 2,
-            ':entity_id' => $this->_getEntityidId(),
+            ':entity_id' => $this->getEntityidId(),
             ':aorder' => 2
         ]);
         $stmt->execute([
             ':attribute_id' => 81,
-            ':entity_id' => $this->_getEntityidId(),
+            ':entity_id' => $this->getEntityidId(),
             ':aorder' => 3
         ]);
         $stmt->execute([
             ':attribute_id' => 259,
-            ':entity_id' => $this->_getEntityidId(),
+            ':entity_id' => $this->getEntityidId(),
             ':aorder' => 4
         ]);
         return $this;
     }
 
-    private function _handleException(): void
+    private function handleException(): void
     {
-        $data = array(
-            'sp_entityID' => $this->_spEntityId,
+        $data = [
+            'sp_entityID' => $this->spEntityId,
             'idp_entityID' => $this->getEntityId()
-        );
-        $queryString = $this->_ehsURL . '?' . http_build_query($data);
-        Logger::stats('TAL EHS:'.$queryString);
+        ];
+        $queryString = $this->ehsURL . '?' . http_build_query($data);
+        Logger::stats('TAL EHS:' . $queryString);
         $httpUtils = new Utils\HTTP();
         $httpUtils->redirect($queryString);
     }
@@ -483,17 +506,17 @@ class SQLStore
      *
      * @return mixed  PDO Database handle, or false
      */
-    private function _getStore()
+    private function getStore()
     {
-        if (null !== $this->_store) {
-            return $this->_store;
+        if (null !== $this->store) {
+            return $this->store;
         }
 
         try {
-            $this->_store = new PDO($this->_dsn, $this->_username, $this->_password);
+            $this->store = new PDO($this->dsn, $this->username, $this->password);
         } catch (PDOException $e) {
             throw new Error\Exception('could not connect to database');
         }
-        return $this->_store;
+        return $this->store;
     }
 }
