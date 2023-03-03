@@ -29,7 +29,7 @@ class SQLStore
     /**
      * DSN config.
      */
-    private string $accountLinkerConfig;
+    private Configuration $accountLinkerConfig;
 
     /**
      * DSN for the database.
@@ -50,8 +50,10 @@ class SQLStore
      * Database handle.
      *
      * This variable can't be serialized.
+     *
+     * @var \PDO|false
      */
-    private PDO $store;
+    private $store = false;
 
     /**
      * Metadata entityId
@@ -60,8 +62,10 @@ class SQLStore
 
     /**
      * Metadata SpEntityId
+     *
+     * @var string|false
      */
-    private ?string $spEntityId = null;
+    private $spEntityId;
 
     /**
      * Metadata attributes
@@ -98,7 +102,7 @@ class SQLStore
     {
         $this->accountLinkerConfig = Configuration::getConfig('module_accountlinker.php');
         foreach (['dsn', 'username', 'password'] as $param) {
-            $config[$param] = $this->accountLinkerConfig->getString($param, null);
+            $config[$param] = $this->accountLinkerConfig->getOptionalString($param, null);
             if ($config[$param] === null) {
                 throw new Error\Exception('AccountLinking - Missing required option \'' . $param . '\'.');
             }
@@ -127,9 +131,9 @@ class SQLStore
     /**
      * Lazy load entityid_id
      *
-     * @return integer entityid_id
+     * @return false|int|string entityid_id
      */
-    protected function getEntityidId(): int
+    protected function getEntityidId()
     {
         if ($this->entityidId) {
             return $this->entityidId;
@@ -159,7 +163,10 @@ class SQLStore
         return $this->entityId;
     }
 
-    public function getSpEntityId(): string
+    /**
+     * @return false|int|string
+     */
+    public function getSpEntityId()
     {
         return $this->spEntityId;
     }
@@ -167,9 +174,9 @@ class SQLStore
     /**
      * Insert entity_id
      *
-     * @return int value of entity_id
+     * @return false|int|string value of entity_id
      */
-    public function addEntityId(): int
+    public function addEntityId()
     {
         $dbh = $this->getStore();
         $stmt = $dbh->prepare("INSERT INTO entityids (name, type) VALUES (:entity_id,:type)");
@@ -183,9 +190,9 @@ class SQLStore
     /**
      * Getter for account_id
      *
-     * @return integer account_id
+     * @return integer|null account_id
      */
-    protected function getAccountId(): int
+    protected function getAccountId(): ?int
     {
         return $this->accountId;
     }
@@ -292,7 +299,7 @@ class SQLStore
      */
     public function saveAttributes(): bool
     {
-        if (!$this->_getAccountId()) {
+        if (!$this->getAccountId()) {
             throw new Error\Exception("Can't save attributes, no account_id found");
         }
 
@@ -497,7 +504,7 @@ class SQLStore
         $queryString = $this->ehsURL . '?' . http_build_query($data);
         Logger::stats('TAL EHS:' . $queryString);
         $httpUtils = new Utils\HTTP();
-        $httpUtils->redirect($queryString);
+        $httpUtils->redirectTrustedURL($queryString);
     }
 
 
@@ -508,7 +515,7 @@ class SQLStore
      */
     private function getStore()
     {
-        if (null !== $this->store) {
+        if (false !== $this->store) {
             return $this->store;
         }
 

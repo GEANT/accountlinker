@@ -37,12 +37,13 @@ class AccountLinker extends Auth\ProcessingFilter
      * Initialize this filter.
      *
      * @param array $config  Configuration information for this filter.
+     * @param mixed $reserved
      */
-    public function __construct(array $config, $reserved)
+    public function __construct(array $config, /** @scrutinizer ignore-unused */$reserved)
     {
         parent::__construct($config, $reserved);
 
-        $this->_store = $this->getStore($config);
+        $this->store = $this->getStore($config);
 
         $this->accountIdPrefix = (isset($config['accountIdPrefix']))
             ? $config['accountIdPrefix'] : 'TAL';
@@ -61,7 +62,7 @@ class AccountLinker extends Auth\ProcessingFilter
         }
 
         $storeConfig = $config['store'];
-        $storeClassName = Module::resolveClass($storeConfig['class']);
+        $storeClassName = Module::resolveClass($storeConfig['class'], 'Store\SQLStore');
         Assert::isInstanceOf($storeClassName, SQLStore::class);
         unset($storeConfig['class']);
 
@@ -71,13 +72,13 @@ class AccountLinker extends Auth\ProcessingFilter
     /**
      * Apply filter
      *
-     * @param array &$request  The current request
+     * @param array &$state The current request
      */
-    public function process(array &$request): void
+    public function process(array &$state): void
     {
-        Assert::keyExists($request, 'Attributes');
+        Assert::keyExists($state, 'Attributes');
 
-        $this->store->setRequest($request);
+        $this->store->setRequest($state);
 
         Logger::stats('AccountLinker: === BEGIN === ');
 
@@ -100,7 +101,7 @@ class AccountLinker extends Auth\ProcessingFilter
         Logger::stats('AccountLinker: Inserting attributes');
 
         if ($this->store->saveAttributes()) {
-            $request['Attributes'][$this->accountIdPrefix . ':user_id'] = [
+            $state['Attributes'][$this->accountIdPrefix . ':user_id'] = [
                 $this->store->saveSpEntityId()
             ];
 
