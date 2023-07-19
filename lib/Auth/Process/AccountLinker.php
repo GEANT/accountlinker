@@ -74,32 +74,32 @@ class sspmod_accountLinker_Auth_Process_AccountLinker extends SimpleSAML_Auth_Pr
 
 		$this->_store->setRequest($request);
 		
-		SimpleSAML_Logger::stats('AccountLinker: === BEGIN === ');
+		SimpleSAML_Logger::debug('AccountLinker: === BEGIN === ');
 				
 		if ($this->_store->hasEntityId()) {
-			SimpleSAML_Logger::stats('AccountLinker: entityid '.$this->_store->getEntityId().' is already known here');
-			SimpleSAML_Logger::stats('AccountLinker: SP entityid '.$this->_store->getSpEntityId() );
+			SimpleSAML_Logger::debug('AccountLinker: entityid '.$this->_store->getEntityId().' is already known here');
+			SimpleSAML_Logger::debug('AccountLinker: SP entityid '.$this->_store->getSpEntityId() );
 			if (!$this->_store->matchIdentifiableAttributes()) {
-				SimpleSAML_Logger::stats('AccountLinker: no account match found, adding account');
+				SimpleSAML_Logger::debug('AccountLinker: no account match found, adding account');
 				$this->_store->addAccount();
 				$newAccount = true;
 			}
 		} else {
-			SimpleSAML_Logger::stats('AccountLinker: entityid does not exist, adding it');
+			SimpleSAML_Logger::debug('AccountLinker: entityid does not exist, adding it');
 			$this->_store->addEntityId();
 			$this->_store->addIdentifiableAttributes();
-			SimpleSAML_Logger::stats('AccountLinker: entityid does not exist, adding account');
+			SimpleSAML_Logger::debug('AccountLinker: entityid does not exist, adding account');
 			$this->_store->addAccount();
 		}
 
-		SimpleSAML_Logger::stats('AccountLinker: Inserting attributes');
+		SimpleSAML_Logger::debug('AccountLinker: Inserting attributes');
 
 		if ($this->_store->saveAttributes()) {
 			$request['Attributes'][$this->_accountIdPrefix.':user_id'] = array(
 				$this->_store->saveSpEntityId()
 			);
 			
-			SimpleSAML_Logger::stats('AccountLinker: === END === ');
+			SimpleSAML_Logger::debug('AccountLinker: === END === ');
 		}
 
 	}

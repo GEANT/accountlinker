@@ -196,7 +196,7 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
         // @todo Check if IDP gives identifiable attributes AT ALL (should be at least one!). Otherwise throw error back to IDP
         $count = 0;
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            SimpleSAML_Logger::stats('AccountLinker: Checking for attribute \''.$row['name'].'\'');
+            SimpleSAML_Logger::debug('AccountLinker: Checking for attribute \''.$row['name'].'\'');
             if (isset($this->_attributes[$row['name']])) {
                 $count++;
                 //$stmt2 = $dbh->prepare("SELECT a.account_id, a.attributeproperty_id
@@ -213,17 +213,17 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
                     $stmt3 = $dbh->prepare("SELECT name FROM attributeproperties WHERE attributeproperty_id=:attribute_id");
                     $stmt3->execute(array(':attribute_id' => $return[1]));
                     $attribute_name = $stmt3->fetchColumn();
-                    SimpleSAML_Logger::stats('AccountLinker: Found match on attribute \''.$attribute_name .'\' for account id '. $return[0]);
+                    SimpleSAML_Logger::debug('AccountLinker: Found match on attribute \''.$attribute_name .'\' for account id '. $return[0]);
                     $this->_accountId = $return[0];
                     return $this->_accountId;
                 }
             }
-            SimpleSAML_Logger::stats('AccountLinker: Attribute \''.$row['name'].'\' not found in metadata/datastore');
+            SimpleSAML_Logger::debug('AccountLinker: Attribute \''.$row['name'].'\' not found in metadata/datastore');
         }
 
         if ($count === 0) {
             $error = 'Could not find any of the attributes to determine who you are';
-            SimpleSAML_Logger::stats('AccountLinker: EXCEPTION '.$error);
+            SimpleSAML_Logger::debug('AccountLinker: EXCEPTION '.$error);
             #throw new Exception('AccountLinking '.$error );
             $this->_handleException();
         }
@@ -333,14 +333,14 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
             $accountId = $this->_getAccountId();
             foreach ($insertValues as $attributePropertyId => $value) {
                 if (count($value) === 1) {
-                    SimpleSAML_Logger::stats('AccountLinker: Inserting '.$attributeMapping[$attributePropertyId].' => \''.$value[0] . '\'');
+                    SimpleSAML_Logger::debug('AccountLinker: Inserting '.$attributeMapping[$attributePropertyId].' => \''.$value[0] . '\'');
                     $query .= "(".$accountId.","
                         .$attributePropertyId.","
                         .$dbh->quote($value[0])."),";
                 } else {
                     // multivalue attribute
                     foreach ($value as $val) {
-                        SimpleSAML_Logger::stats('AccountLinker: Inserting '.$attributeMapping[$attributePropertyId].' => \''.$val.'\'');
+                        SimpleSAML_Logger::debug('AccountLinker: Inserting '.$attributeMapping[$attributePropertyId].' => \''.$val.'\'');
                         $query .= "(".$accountId.","
                             .$attributePropertyId.","
                             .$dbh->quote($val)."),";
@@ -412,7 +412,7 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
             ':user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? ''
         ));
 
-        SimpleSAML_Logger::stats('AccountLinker: Returning user_id '.$userId);
+        SimpleSAML_Logger::debug('AccountLinker: Returning user_id '.$userId);
         return $userId;
     }
 
@@ -424,7 +424,7 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
      */
     public function addIdentifiableAttributes()
     {
-        SimpleSAML_Logger::stats('AccountLinker: adding default id attributes for entityid_id: '. $this->_getEntityidId());
+        SimpleSAML_Logger::debug('AccountLinker: adding default id attributes for entityid_id: '. $this->_getEntityidId());
         $dbh = $this->_getStore();
         $stmt = $dbh->prepare("INSERT INTO idattributes (attribute_id, entity_id, aorder) VALUES (:attribute_id,:entity_id, :aorder)");
         $stmt->execute(array(
@@ -457,7 +457,7 @@ class sspmod_accountLinker_AccountLinker_Store_SQLStore {
             'idp_entityID' => $this->getEntityId()
         );
         $queryString = $this->_ehsURL.'?'.http_build_query($data);
-        SimpleSAML_Logger::stats('TAL EHS:'.$queryString);
+        SimpleSAML_Logger::debug('TAL EHS:'.$queryString);
         SimpleSAML_Utilities::redirect($queryString);
     }
 
