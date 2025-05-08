@@ -1,5 +1,8 @@
 # AccountLinking module
 
+**This repo was archived on 2025-05-08. It has been superseded by https://github.com/GEANT/simplesaml-module-geant**
+
+
 This is the GÉANT [SimpleSAMLphp](https://github.com/simplesamlphp/simplesamlphp) module for linking accounts.
 
 ## Summary
